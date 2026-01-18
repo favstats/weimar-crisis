@@ -195,7 +195,8 @@
         /* ============================================
            INSPECT ROLES SCREEN
            ============================================ */
-        #inspect-screen {
+        #inspect-screen,
+        #lobby-screen {
             overflow-y: auto;
             justify-content: flex-start;
             padding-top: 60px;
@@ -539,6 +540,35 @@
             color: var(--brown-light);
             margin-top: 12px;
             font-style: italic;
+        }
+
+        .role-hint {
+            font-size: 0.75rem;
+            font-weight: normal;
+            opacity: 0.7;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .view-roles-link {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .view-roles-link a {
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .view-roles-link a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .view-roles-link i {
+            margin-right: 4px;
         }
 
         /* ============================================
@@ -1107,9 +1137,16 @@
                 </ul>
             </div>
 
+            <!-- View Roles Link -->
+            <div class="view-roles-link" id="view-roles-link" style="display: none;">
+                <a href="#" onclick="showScreen('inspect-screen'); return false;">
+                    <i class="fas fa-info-circle"></i> View all role descriptions
+                </a>
+            </div>
+
             <!-- Power Role Configuration (Host Only) -->
             <div class="role-config" id="role-config" style="display: none;">
-                <div class="role-config-title title-english">Power Roles</div>
+                <div class="role-config-title title-english">Power Roles <span class="role-hint">(special one-time abilities)</span></div>
                 <div class="role-config-mode">
                     <label class="role-mode-option">
                         <input type="radio" name="roleMode" value="random" checked onchange="updateRoleMode()">
@@ -1143,7 +1180,7 @@
 
             <!-- Behavior Role Configuration (Host Only) -->
             <div class="role-config" id="behavior-config" style="display: none;">
-                <div class="role-config-title title-english">Behavior Roles</div>
+                <div class="role-config-title title-english">Behavior Roles <span class="role-hint">(how you should act)</span></div>
                 <div class="role-config-mode">
                     <label class="role-mode-option">
                         <input type="radio" name="behaviorMode" value="random" checked onchange="updateBehaviorMode()">
@@ -1377,24 +1414,6 @@
                 subtitle: 'Der Veteran',
                 behavior: 'You only truly trust fellow soldiers who served in the war.',
                 icon: `<i class="fas fa-medal"></i>`
-            },
-            'paranoid': {
-                title: 'The Paranoid',
-                subtitle: 'Der Paranoide',
-                behavior: 'You trust absolutely no one. Everyone has hidden agendas.',
-                icon: `<i class="fas fa-eye"></i>`
-            },
-            'optimist': {
-                title: 'The Optimist',
-                subtitle: 'Der Optimiſt',
-                behavior: 'You always give people the benefit of the doubt. Perhaps too trusting.',
-                icon: `<i class="fas fa-sun"></i>`
-            },
-            'cynic': {
-                title: 'The Cynic',
-                subtitle: 'Der Zyniker',
-                behavior: 'You assume everyone has ulterior motives and acts from self-interest.',
-                icon: `<i class="fas fa-cloud"></i>`
             },
             'hothead': {
                 title: 'The Hothead',
@@ -1724,6 +1743,11 @@
             // Show role config only for host
             const roleConfigEl = document.getElementById('role-config');
             const behaviorConfigEl = document.getElementById('behavior-config');
+            const viewRolesLink = document.getElementById('view-roles-link');
+            
+            // Always show view roles link
+            viewRolesLink.style.display = 'block';
+            
             if (gameState.isHost) {
                 roleConfigEl.style.display = 'block';
                 behaviorConfigEl.style.display = 'block';
@@ -1764,7 +1788,7 @@
         };
 
         // Behavior Roles
-        const ALL_BEHAVIOR_ROLES = ['feminist', 'misogynist', 'aristocrat', 'proletarian', 'pacifist', 'militarist', 'monarchist', 'revolutionary', 'prussian', 'bavarian', 'devout', 'atheist', 'academic', 'worker', 'veteran', 'paranoid', 'optimist', 'cynic', 'hothead'];
+        const ALL_BEHAVIOR_ROLES = ['feminist', 'misogynist', 'aristocrat', 'proletarian', 'pacifist', 'militarist', 'monarchist', 'revolutionary', 'prussian', 'bavarian', 'devout', 'atheist', 'academic', 'worker', 'veteran', 'hothead'];
         let behaviorConfig = {
             mode: 'random',
             count: 19,

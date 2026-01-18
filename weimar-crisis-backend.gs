@@ -28,13 +28,12 @@ const ROLES = [
   'constitutional_judge'
 ];
 
-// Available behavior roles
+// Available behavior roles (16 total)
 const BEHAVIORS = [
   'feminist', 'misogynist', 'aristocrat', 'proletarian', 
   'pacifist', 'militarist', 'monarchist', 'revolutionary',
   'prussian', 'bavarian', 'devout', 'atheist', 
-  'academic', 'worker', 'veteran', 
-  'paranoid', 'optimist', 'cynic', 'hothead'
+  'academic', 'worker', 'veteran', 'hothead'
 ];
 
 // ==================== WEB APP ENTRY POINTS ====================
