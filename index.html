@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Weimar Crisis — Expansion Roles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=UnifrakturCook:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            /* Secret Hitler Color Palette */
+            --fascist-red: #C23B22;
+            --fascist-dark: #8B2500;
+            --fascist-light: #E8654A;
+            --liberal-blue: #4A6FA5;
+            --liberal-dark: #2C4A6E;
+            --liberal-light: #6B8FC5;
+            --cream: #D4C5A9;
+            --cream-light: #E8DFD0;
+            --tan: #B8A888;
+            --brown: #2C2416;
+            --brown-light: #5A4A32;
+            --gold: #C9A227;
+            --bg-red: #E8654A;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Crimson Pro', Georgia, serif;
+            background: var(--bg-red);
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(0,0,0,0.03) 20px,
+                    rgba(0,0,0,0.03) 40px
+                );
+            color: var(--brown);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================
+           TYPOGRAPHY
+           ============================================ */
+        .title-english {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .title-german {
+            font-family: 'UnifrakturCook', cursive;
+            font-weight: 700;
+        }
+
+        /* ============================================
+           SCREENS
+           ============================================ */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* ============================================
+           START SCREEN
+           ============================================ */
+        #start-screen {
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            background: var(--brown);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid var(--cream);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .logo-icon svg {
+            width: 70px;
+            height: 70px;
+            fill: var(--cream);
+        }
+
+        .logo-title {
+            font-size: 3rem;
+            color: var(--cream);
+            text-shadow: 3px 3px 0 var(--brown), 4px 4px 0 rgba(0,0,0,0.2);
+            margin-bottom: 8px;
+        }
+
+        .logo-subtitle {
+            font-size: 1.8rem;
+            color: var(--brown);
+            opacity: 0.8;
+        }
+
+        .start-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .btn {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 0.1em;
+            padding: 16px 32px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--brown);
+            color: var(--cream);
+            border: 3px solid var(--cream);
+            box-shadow: 0 4px 0 var(--fascist-dark);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--fascist-dark);
+        }
+
+        .btn-primary:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--fascist-dark);
+        }
+
+        .btn-secondary {
+            background: var(--cream);
+            color: var(--brown);
+            border: 3px solid var(--brown);
+            box-shadow: 0 4px 0 var(--tan);
+        }
+
+        .join-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .join-input {
+            flex: 1;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 0.15em;
+            padding: 16px;
+            border: 3px solid var(--brown);
+            background: var(--cream);
+            color: var(--brown);
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .join-input::placeholder {
+            color: var(--tan);
+            opacity: 1;
+        }
+
+        .btn-join {
+            padding: 16px 24px;
+            font-size: 1.2rem;
+        }
+
+        /* ============================================
+           NAME INPUT SCREEN
+           ============================================ */
+        .name-container {
+            background: var(--cream);
+            border: 4px solid var(--brown);
+            padding: 32px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        .name-container::before,
+        .name-container::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--brown);
+        }
+
+        .name-container::before {
+            top: 8px;
+            left: 8px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .name-container::after {
+            bottom: 8px;
+            right: 8px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .name-label {
+            font-size: 1.5rem;
+            color: var(--brown);
+            margin-bottom: 16px;
+        }
+
+        .name-input {
+            width: 100%;
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.3rem;
+            padding: 14px;
+            border: 3px solid var(--brown);
+            background: white;
+            color: var(--brown);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* ============================================
+           LOBBY SCREEN
+           ============================================ */
+        .lobby-container {
+            background: var(--cream);
+            border: 4px solid var(--brown);
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        .lobby-container::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--brown);
+            padding: 4px 20px;
+            color: var(--cream);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+        }
+
+        .lobby-code {
+            background: var(--brown);
+            color: var(--cream);
+            padding: 12px 24px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .lobby-code-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            opacity: 0.7;
+        }
+
+        .lobby-code-value {
+            font-size: 2rem;
+            letter-spacing: 0.2em;
+        }
+
+        .lobby-players {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .lobby-players-title {
+            font-size: 1rem;
+            color: var(--brown);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--tan);
+        }
+
+        .player-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--tan);
+        }
+
+        .player-number {
+            width: 28px;
+            height: 28px;
+            background: var(--brown);
+            color: var(--cream);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .player-name {
+            flex: 1;
+            font-size: 1.1rem;
+        }
+
+        .player-host {
+            font-size: 0.7rem;
+            background: var(--gold);
+            color: var(--brown);
+            padding: 2px 8px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.1em;
+        }
+
+        .lobby-status {
+            font-size: 0.9rem;
+            color: var(--brown-light);
+            margin: 16px 0;
+            font-style: italic;
+        }
+
+        .lobby-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* ============================================
+           WAITING SCREEN
+           ============================================ */
+        .waiting-container {
+            text-align: center;
+            color: var(--cream);
+        }
+
+        .waiting-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--cream);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .waiting-text {
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 0 var(--brown);
+        }
+
+        .waiting-subtext {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+
+        /* ============================================
+           REVEAL SCREEN
+           ============================================ */
+        .reveal-container {
+            text-align: center;
+        }
+
+        .reveal-card {
+            width: 280px;
+            height: 400px;
+            background: var(--brown);
+            border: 4px solid var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+
+        .reveal-card:hover {
+            transform: scale(1.02);
+        }
+
+        .reveal-card:active {
+            transform: scale(0.98);
+        }
+
+        .reveal-card-inner {
+            text-align: center;
+            color: var(--cream);
+        }
+
+        .reveal-question {
+            font-size: 8rem;
+            font-family: 'Bebas Neue', sans-serif;
+            line-height: 1;
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+        }
+
+        .reveal-text {
+            font-size: 1.2rem;
+            margin-top: 16px;
+            letter-spacing: 0.1em;
+        }
+
+        .reveal-german {
+            font-size: 1rem;
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        /* Decorative corners on reveal card */
+        .reveal-card::before,
+        .reveal-card::after,
+        .reveal-card .corner-bl,
+        .reveal-card .corner-br {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--cream);
+        }
+
+        .reveal-card::before {
+            top: 12px;
+            left: 12px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .reveal-card::after {
+            top: 12px;
+            right: 12px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .reveal-card .corner-bl {
+            bottom: 12px;
+            left: 12px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .reveal-card .corner-br {
+            bottom: 12px;
+            right: 12px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* ============================================
+           ROLE CARD DISPLAY
+           ============================================ */
+        .role-card-container {
+            perspective: 1000px;
+        }
+
+        .role-card {
+            width: 300px;
+            height: 440px;
+            background: var(--cream);
+            border: 4px solid var(--brown);
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        /* Zigzag border at top */
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: 
+                linear-gradient(135deg, var(--brown) 25%, transparent 25%) -6px 0,
+                linear-gradient(225deg, var(--brown) 25%, transparent 25%) -6px 0,
+                linear-gradient(315deg, var(--brown) 25%, transparent 25%),
+                linear-gradient(45deg, var(--brown) 25%, transparent 25%);
+            background-size: 12px 12px;
+            background-color: var(--cream);
+        }
+
+        /* Zigzag border at bottom */
+        .role-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: 
+                linear-gradient(135deg, var(--cream) 25%, transparent 25%) -6px 0,
+                linear-gradient(225deg, var(--cream) 25%, transparent 25%) -6px 0,
+                linear-gradient(315deg, var(--cream) 25%, transparent 25%),
+                linear-gradient(45deg, var(--cream) 25%, transparent 25%);
+            background-size: 12px 12px;
+            background-color: var(--brown);
+        }
+
+        .role-card-inner {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px 24px;
+        }
+
+        /* Header section */
+        .role-header {
+            background: var(--tan);
+            border: 3px solid var(--brown);
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .role-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 8px;
+            background: var(--brown);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Diamond shape for icon */
+        .role-icon::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 2px solid var(--brown);
+            transform: rotate(45deg);
+        }
+
+        .role-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--cream);
+        }
+
+        .role-title {
+            font-size: 1.6rem;
+            color: var(--brown);
+            line-height: 1.1;
+        }
+
+        .role-subtitle {
+            font-size: 1.3rem;
+            color: var(--brown-light);
+            margin-top: 4px;
+        }
+
+        /* Power section */
+        .role-power {
+            flex: 1;
+            padding: 0 8px;
+        }
+
+        .power-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            color: var(--brown-light);
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .power-name {
+            font-size: 1.3rem;
+            color: var(--brown);
+            text-align: center;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 3px solid var(--tan);
+            position: relative;
+        }
+
+        /* Diamond accent on power name border */
+        .power-name::after {
+            content: '◆';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--cream);
+            padding: 0 8px;
+            font-size: 0.7rem;
+            color: var(--tan);
+        }
+
+        .power-desc {
+            font-size: 0.95rem;
+            color: var(--brown);
+            text-align: center;
+            line-height: 1.45;
+        }
+
+        .power-note {
+            font-size: 0.8rem;
+            color: var(--brown-light);
+            text-align: center;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Quote footer */
+        .role-quote {
+            margin-top: auto;
+            padding: 12px;
+            background: var(--brown);
+            color: var(--cream);
+            text-align: center;
+            position: relative;
+        }
+
+        .quote-text {
+            font-size: 0.8rem;
+            font-style: italic;
+            line-height: 1.35;
+        }
+
+        .quote-attr {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        /* ============================================
+           REFERENCE CARD
+           ============================================ */
+        .ref-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--tan);
+        }
+
+        .ref-icon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            background: var(--brown);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ref-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--cream);
+        }
+
+        .ref-text {
+            font-size: 0.85rem;
+            color: var(--brown);
+        }
+
+        .ref-text strong {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           BACK BUTTON
+           ============================================ */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: var(--brown);
+            border: 3px solid var(--cream);
+            color: var(--cream);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: var(--brown-light);
+        }
+
+        /* ============================================
+           STATUS MESSAGES
+           ============================================ */
+        .status-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--brown);
+            color: var(--cream);
+            padding: 12px 24px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.1em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 200;
+        }
+
+        .status-message.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .status-message.error {
+            background: var(--fascist-red);
+        }
+
+        /* ============================================
+           PRINT MODE (for reference cards)
+           ============================================ */
+        @media print {
+            body {
+                background: white;
+                padding: 8px;
+            }
+            .screen { display: block !important; }
+            #start-screen, #name-screen, #lobby-screen, 
+            #waiting-screen, #reveal-screen { display: none !important; }
+            .back-btn { display: none; }
+        }
+
+        /* ============================================
+           MOBILE OPTIMIZATIONS
+           ============================================ */
+        @media (max-width: 360px) {
+            .role-card {
+                width: 280px;
+                height: 400px;
+            }
+            .role-title { font-size: 1.4rem; }
+            .role-subtitle { font-size: 1.1rem; }
+            .power-desc { font-size: 0.85rem; }
+        }
+
+        /* ============================================
+           NO ROLE CARD (when not assigned)
+           ============================================ */
+        .no-role-card {
+            width: 300px;
+            height: 440px;
+            background: var(--cream);
+            border: 4px solid var(--brown);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 32px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+
+        .no-role-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .no-role-text {
+            font-size: 1.3rem;
+            color: var(--brown);
+            margin-bottom: 8px;
+        }
+
+        .no-role-german {
+            font-size: 1.1rem;
+            color: var(--brown-light);
+        }
+
+        .no-role-subtext {
+            font-size: 0.9rem;
+            color: var(--brown-light);
+            margin-top: 16px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== START SCREEN ==================== -->
+    <div id="start-screen" class="screen active">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11H7V7.18L12 5z"/>
+                </svg>
+            </div>
+            <h1 class="logo-title title-english">Weimar Crisis</h1>
+            <h2 class="logo-subtitle title-german">Weimarer Krise</h2>
+        </div>
+        <div class="start-buttons">
+            <button class="btn btn-primary" onclick="showScreen('name-screen', true)">Create New Game</button>
+            <div class="join-input-group">
+                <input type="text" class="join-input" id="join-code-input" placeholder="GAME CODE" maxlength="10">
+                <button class="btn btn-secondary btn-join" onclick="joinWithCode()">Join</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== NAME INPUT SCREEN ==================== -->
+    <div id="name-screen" class="screen">
+        <button class="back-btn" onclick="showScreen('start-screen')">←</button>
+        <div class="name-container">
+            <h2 class="name-label title-english">Enter Your Name</h2>
+            <input type="text" class="name-input" id="player-name-input" placeholder="Your Name" maxlength="20">
+            <button class="btn btn-primary" onclick="confirmName()" style="width: 100%;">Continue</button>
+        </div>
+    </div>
+
+    <!-- ==================== LOBBY SCREEN ==================== -->
+    <div id="lobby-screen" class="screen">
+        <button class="back-btn" onclick="leaveLobby()">←</button>
+        <div class="lobby-container">
+            <div class="lobby-code">
+                <div class="lobby-code-label title-english">Game Code</div>
+                <div class="lobby-code-value title-english" id="lobby-code-display">WEIMAR-XXXX</div>
+            </div>
+            
+            <div class="lobby-players">
+                <div class="lobby-players-title title-english">
+                    Players (<span id="player-count">0</span>/10)
+                </div>
+                <ul class="player-list" id="player-list">
+                    <!-- Players will be added dynamically -->
+                </ul>
+            </div>
+
+            <div class="lobby-status" id="lobby-status">Waiting for players...</div>
+
+            <div class="lobby-actions">
+                <button class="btn btn-primary" id="deal-roles-btn" onclick="dealRoles()" style="display: none;">
+                    Deal Expansion Roles
+                </button>
+                <button class="btn btn-secondary" onclick="copyGameCode()">Copy Game Code</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== WAITING SCREEN ==================== -->
+    <div id="waiting-screen" class="screen">
+        <div class="waiting-container">
+            <div class="waiting-spinner"></div>
+            <div class="waiting-text title-english" id="waiting-text">Waiting for Host</div>
+            <div class="waiting-subtext" id="waiting-subtext">The host will deal roles soon...</div>
+        </div>
+    </div>
+
+    <!-- ==================== REVEAL SCREEN ==================== -->
+    <div id="reveal-screen" class="screen">
+        <button class="back-btn" onclick="backToLobby()">←</button>
+        <div class="reveal-container">
+            <div class="reveal-card" onclick="revealRole()">
+                <div class="corner-bl"></div>
+                <div class="corner-br"></div>
+                <div class="reveal-card-inner">
+                    <div class="reveal-question">?</div>
+                    <div class="reveal-text title-english">Tap to Reveal</div>
+                    <div class="reveal-german title-german">Tippen zum Enthüllen</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== ROLE DISPLAY SCREEN ==================== -->
+    <div id="role-screen" class="screen">
+        <button class="back-btn" onclick="hideRole()">←</button>
+        <div class="role-card-container" id="role-card-container">
+            <!-- Role card will be inserted here -->
+        </div>
+    </div>
+
+    <!-- ==================== STATUS MESSAGE ==================== -->
+    <div class="status-message" id="status-message"></div>
+
+    <!-- ==================== ROLE DATA ==================== -->
+    <script>
+        const ROLES = {
+            'police_chief': {
+                title: 'Police Chief',
+                subtitle: 'Polizeipräſident',
+                powerLabel: 'One-Time Power',
+                powerName: 'Arrest',
+                powerNameGerman: 'Verhaftung',
+                powerDesc: 'During any discussion, arrest one player. They cannot serve as President or Chancellor until pardoned by a sitting President.',
+                powerNote: 'Arrested players may still vote and speak.',
+                quote: '"I even hate the revolution like sin."',
+                quoteAttr: '— Friedrich Ebert, November 1918',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 3l6 2.6v5.4h-4v-3H10v3H6V8.6l6-2.6z"/></svg>`
+            },
+            'assassin': {
+                title: 'The Assassin',
+                subtitle: 'Der Attentäter',
+                powerLabel: 'One-Time Power',
+                powerName: 'Assassinate',
+                powerNameGerman: 'Attentat',
+                powerDesc: 'During any discussion, eliminate one player from the game permanently.',
+                powerNote: 'Cannot use while arrested. Killing Hitler = Liberal victory.',
+                quote: '"Soldiers are murderers."',
+                quoteAttr: '— Kurt Tucholsky, 1931',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="6" x2="12" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>`
+            },
+            'journalist': {
+                title: 'The Journalist',
+                subtitle: 'Der Reporter',
+                powerLabel: 'One-Time Power',
+                powerName: 'Exposé',
+                powerNameGerman: 'Enthüllung',
+                powerDesc: 'After a legislative session, force the President or Chancellor to truthfully reveal one policy they discarded.',
+                powerNote: null,
+                quote: '"Language is a weapon. Keep it sharp."',
+                quoteAttr: '— Kurt Tucholsky',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="14.5" y1="14.5" x2="20" y2="20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`
+            },
+            'industrialist': {
+                title: 'The Industrialist',
+                subtitle: 'Der Großinduſtrielle',
+                powerLabel: 'One-Time Power',
+                powerName: 'Fund',
+                powerNameGerman: 'Finanzierung',
+                powerDesc: 'During voting, fund the proposed government. The election passes automatically regardless of votes.',
+                powerNote: null,
+                quote: '"I Paid Hitler."',
+                quoteAttr: '— Fritz Thyssen, memoir title, 1941',
+                icon: `<svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 8l8-5 8 5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="12" x2="8" y2="17" stroke="currentColor" stroke-width="2"/><line x1="12" y1="12" x2="12" y2="17" stroke="currentColor" stroke-width="2"/><line x1="16" y1="12" x2="16" y2="17" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'union_organizer': {
+                title: 'Union Organizer',
+                subtitle: 'Der Gewerkſchaftsführer',
+                powerLabel: 'One-Time Power',
+                powerName: 'General Strike',
+                powerNameGerman: 'Generalſtreik',
+                powerDesc: 'During voting, call a general strike. The election fails automatically regardless of votes.',
+                powerNote: null,
+                quote: '"Workers! Go on strike! Shut down the economy!"',
+                quoteAttr: '— Anti-Kapp putsch leaflet, 1920',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/><line x1="12" y1="4" x2="12" y2="7" stroke="currentColor" stroke-width="2"/><line x1="12" y1="17" x2="12" y2="20" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="7" y2="12" stroke="currentColor" stroke-width="2"/><line x1="17" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'constitutional_judge': {
+                title: 'Constitutional Judge',
+                subtitle: 'Der Verfaſſungsrichter',
+                powerLabel: 'One-Time Power',
+                powerName: 'Judicial Review',
+                powerNameGerman: 'Normenkontrolle',
+                powerDesc: 'Block any executive power (Investigation, Special Election, or Execution) as it is used. That power is lost.',
+                powerNote: null,
+                quote: '"No Enabling Act gives you the power to destroy ideas that are eternal."',
+                quoteAttr: '— Otto Wels, SPD, March 1933',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2L4 6v5c0 5.25 3.4 10.2 8 11.6 4.6-1.4 8-6.35 8-11.6V6l-8-4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v10M8 11h8" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'no_role': {
+                title: 'No Expansion Role',
+                subtitle: 'Keine Erweiterungsrolle',
+                powerLabel: null,
+                powerName: null,
+                powerDesc: 'You have no expansion role this game. Play with your standard Secret Hitler role only.',
+                powerNote: null,
+                quote: null,
+                quoteAttr: null,
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>`
+            }
+        };
+
+        // ==================== APP STATE ====================
+        let gameState = {
+            gameCode: null,
+            playerId: null,
+            playerName: null,
+            isHost: false,
+            players: [],
+            myRole: null,
+            rolesDealt: false
+        };
+
+        // API endpoint - Apps Script Web App URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzQ_edyjoc2MhAnvD-ZeatfkUrdqPYzmcZxb5wNLb7__Mn_qszX9n6mBd5WU7Lq4vwJ/exec';
+        
+        // Polling interval (ms)
+        const POLL_INTERVAL = 3000;
+        let pollTimer = null;
+
+        // ==================== API HELPER ====================
+        async function callAPI(action, params = {}) {
+            const url = new URL(API_URL);
+            url.searchParams.append('action', action);
+            Object.keys(params).forEach(key => {
+                url.searchParams.append(key, params[key]);
+            });
+            
+            try {
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // ==================== SCREEN NAVIGATION ====================
+        function showScreen(screenId, isCreating = false) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'name-screen') {
+                gameState.isHost = isCreating;
+                document.getElementById('player-name-input').focus();
+            }
+        }
+
+        // ==================== GAME ACTIONS ====================
+        async function confirmName() {
+            const name = document.getElementById('player-name-input').value.trim();
+            if (!name) {
+                showStatus('Please enter your name', true);
+                return;
+            }
+            
+            gameState.playerName = name;
+            
+            if (gameState.isHost) {
+                await createGame();
+            } else {
+                await joinGame();
+            }
+        }
+
+        async function createGame() {
+            try {
+                showStatus('Creating game...');
+                
+                // Check if API is configured
+                // Call API to create game
+                const result = await callAPI('createGame', {
+                    hostName: gameState.playerName
+                });
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to create game');
+                }
+                
+                gameState.gameCode = result.gameCode;
+                gameState.playerId = result.playerId;
+                gameState.isHost = true;
+                gameState.players = [{
+                    id: gameState.playerId,
+                    name: gameState.playerName,
+                    isHost: true
+                }];
+                
+                saveGameState();
+                updateLobbyDisplay();
+                showScreen('lobby-screen');
+                showStatus('Game created!');
+                startPolling();
+                
+            } catch (error) {
+                showStatus('Failed to create game: ' + error.message, true);
+                console.error(error);
+            }
+        }
+
+        function joinWithCode() {
+            const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+            if (!code) {
+                showStatus('Please enter a game code', true);
+                return;
+            }
+            gameState.gameCode = code;
+            gameState.isHost = false;
+            showScreen('name-screen');
+        }
+
+        async function joinGame() {
+            try {
+                showStatus('Joining game...');
+                
+                // Call API to join game
+                const result = await callAPI('joinGame', {
+                    gameCode: gameState.gameCode,
+                    playerName: gameState.playerName
+                });
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to join game');
+                }
+                
+                gameState.playerId = result.playerId;
+                gameState.isHost = false;
+                
+                saveGameState();
+                showScreen('waiting-screen');
+                startPolling();
+                
+            } catch (error) {
+                showStatus('Failed to join: ' + error.message, true);
+                console.error(error);
+            }
+        }
+
+        async function dealRoles() {
+            if (!gameState.isHost) return;
+            
+            try {
+                showStatus('Dealing roles...');
+                
+                // Call API to deal roles
+                const result = await callAPI('dealRoles', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId
+                });
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to deal roles');
+                }
+                
+                gameState.rolesDealt = true;
+                saveGameState();
+                
+                showScreen('reveal-screen');
+                showStatus('Roles dealt! Tap to reveal yours.');
+                
+            } catch (error) {
+                showStatus('Failed to deal roles: ' + error.message, true);
+                console.error(error);
+            }
+        }
+
+        async function revealRole() {
+            try {
+                // Fetch role from API
+                showStatus('Revealing role...');
+                const result = await callAPI('getMyRole', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId
+                });
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to get role');
+                }
+                
+                gameState.myRole = result.role;
+                saveGameState();
+                
+                displayRoleCard(gameState.myRole);
+                showScreen('role-screen');
+                
+            } catch (error) {
+                showStatus('Failed to reveal role: ' + error.message, true);
+                console.error(error);
+            }
+        }
+
+        function hideRole() {
+            showScreen('reveal-screen');
+        }
+
+        function backToLobby() {
+            showScreen('lobby-screen');
+        }
+
+        function leaveLobby() {
+            if (confirm('Leave this game?')) {
+                stopPolling();
+                clearGameState();
+                showScreen('start-screen');
+            }
+        }
+
+        // ==================== UI UPDATES ====================
+        function updateLobbyDisplay() {
+            document.getElementById('lobby-code-display').textContent = gameState.gameCode;
+            document.getElementById('player-count').textContent = gameState.players.length;
+            
+            const list = document.getElementById('player-list');
+            list.innerHTML = gameState.players.map((p, i) => `
+                <li class="player-item">
+                    <span class="player-number">${i + 1}</span>
+                    <span class="player-name">${p.name}</span>
+                    ${p.isHost ? '<span class="player-host">HOST</span>' : ''}
+                </li>
+            `).join('');
+            
+            // Show deal button only for host with 2+ players
+            const dealBtn = document.getElementById('deal-roles-btn');
+            if (gameState.isHost && gameState.players.length >= 2) {
+                dealBtn.style.display = 'block';
+            } else {
+                dealBtn.style.display = 'none';
+            }
+            
+            // Update status
+            const status = document.getElementById('lobby-status');
+            if (gameState.players.length < 2) {
+                status.textContent = 'Need at least 2 players to start...';
+            } else {
+                status.textContent = `${gameState.players.length} players ready`;
+            }
+        }
+
+        function displayRoleCard(roleId) {
+            const role = ROLES[roleId];
+            if (!role) return;
+            
+            const container = document.getElementById('role-card-container');
+            
+            if (roleId === 'no_role') {
+                container.innerHTML = `
+                    <div class="no-role-card">
+                        <div class="no-role-icon">∅</div>
+                        <div class="no-role-text title-english">${role.title}</div>
+                        <div class="no-role-german title-german">${role.subtitle}</div>
+                        <div class="no-role-subtext">${role.powerDesc}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="role-card">
+                    <div class="role-card-inner">
+                        <div class="role-header">
+                            <div class="role-icon">${role.icon}</div>
+                            <div class="role-title title-english">${role.title}</div>
+                            <div class="role-subtitle title-german">${role.subtitle}</div>
+                        </div>
+                        <div class="role-power">
+                            ${role.powerLabel ? `<div class="power-label title-english">${role.powerLabel}</div>` : ''}
+                            ${role.powerName ? `<div class="power-name title-english">${role.powerName}</div>` : ''}
+                            <div class="power-desc">${role.powerDesc}</div>
+                            ${role.powerNote ? `<div class="power-note">${role.powerNote}</div>` : ''}
+                        </div>
+                        ${role.quote ? `
+                            <div class="role-quote">
+                                <div class="quote-text">${role.quote}</div>
+                                <div class="quote-attr">${role.quoteAttr}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function copyGameCode() {
+            navigator.clipboard.writeText(gameState.gameCode).then(() => {
+                showStatus('Code copied!');
+            }).catch(() => {
+                showStatus('Failed to copy', true);
+            });
+        }
+
+        // ==================== UTILITIES ====================
+        function generateGameCode() {
+            // 4 letters + 2 numbers (e.g., ABCD12)
+            const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+            const numbers = '0123456789';
+            let code = '';
+            for (let i = 0; i < 4; i++) {
+                code += letters.charAt(Math.floor(Math.random() * letters.length));
+            }
+            for (let i = 0; i < 2; i++) {
+                code += numbers.charAt(Math.floor(Math.random() * numbers.length));
+            }
+            return code;
+        }
+
+        function generatePlayerId() {
+            return 'p_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function showStatus(message, isError = false) {
+            const el = document.getElementById('status-message');
+            el.textContent = message;
+            el.className = 'status-message show' + (isError ? ' error' : '');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function saveGameState() {
+            localStorage.setItem('weimarCrisis', JSON.stringify(gameState));
+        }
+
+        function loadGameState() {
+            const saved = localStorage.getItem('weimarCrisis');
+            if (saved) {
+                gameState = JSON.parse(saved);
+                return true;
+            }
+            return false;
+        }
+
+        function clearGameState() {
+            gameState = {
+                gameCode: null,
+                playerId: null,
+                playerName: null,
+                isHost: false,
+                players: [],
+                myRole: null,
+                rolesDealt: false
+            };
+            localStorage.removeItem('weimarCrisis');
+        }
+
+        // Polling for player/game updates
+        function startPolling() {
+            stopPolling(); // Clear any existing timer
+            
+            pollTimer = setInterval(async () => {
+                try {
+                    // Get latest player list
+                    const playersResult = await callAPI('getPlayers', {
+                        gameCode: gameState.gameCode
+                    });
+                    
+                    if (playersResult.success) {
+                        gameState.players = playersResult.players;
+                        
+                        // Check if roles were dealt
+                        if (playersResult.rolesDealt && !gameState.rolesDealt) {
+                            gameState.rolesDealt = true;
+                            saveGameState();
+                            stopPolling();
+                            showScreen('reveal-screen');
+                            showStatus('Roles have been dealt! Tap to reveal yours.');
+                            return;
+                        }
+                        
+                        // Update lobby display if we're on that screen
+                        if (document.getElementById('lobby-screen').classList.contains('active')) {
+                            updateLobbyDisplay();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, POLL_INTERVAL);
+        }
+
+        function stopPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            // Check for saved game state
+            if (loadGameState() && gameState.gameCode) {
+                if (gameState.rolesDealt && gameState.myRole) {
+                    showScreen('reveal-screen');
+                } else if (gameState.isHost) {
+                    updateLobbyDisplay();
+                    showScreen('lobby-screen');
+                } else {
+                    showScreen('waiting-screen');
+                }
+            }
+            
+            // Handle Enter key on inputs
+            document.getElementById('join-code-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') joinWithCode();
+            });
+            document.getElementById('player-name-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') confirmName();
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
