@@ -1515,26 +1515,25 @@
         // ==================== LEAVE GAME ====================
         function leaveGame() {
             if (confirm('Leave the game and return to the start screen?')) {
-                // Clear stored game data
-                localStorage.removeItem('gameCode');
-                localStorage.removeItem('playerId');
-                localStorage.removeItem('playerName');
-                localStorage.removeItem('isHost');
-                
-                // Reset game state
-                gameState.gameCode = null;
-                gameState.playerId = null;
-                gameState.playerName = null;
-                gameState.isHost = false;
-                gameState.players = [];
-                gameState.myRole = null;
-                gameState.myBehaviorRole = null;
-                
-                // Stop polling
+                // Stop polling first
                 if (lobbyPollInterval) {
                     clearInterval(lobbyPollInterval);
                     lobbyPollInterval = null;
                 }
+                
+                // Clear ALL stored game data
+                localStorage.removeItem('weimarCrisis');
+                
+                // Reset game state completely
+                gameState = {
+                    gameCode: null,
+                    playerId: null,
+                    playerName: null,
+                    isHost: false,
+                    players: [],
+                    myRole: null,
+                    myBehaviorRole: null
+                };
                 
                 // Go to start screen
                 showScreen('start-screen');
