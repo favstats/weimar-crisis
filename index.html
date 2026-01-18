@@ -1631,7 +1631,7 @@
 
         async function revealRole() {
             try {
-                // Fetch both roles from API
+                // Fetch role from API
                 showStatus('Revealing role...');
                 const result = await callAPI('getMyRole', {
                     gameCode: gameState.gameCode,
@@ -1647,8 +1647,17 @@
                 gameState.revealStep = 1;
                 saveGameState();
                 
-                // Show power role first
-                displayRoleCard(gameState.myRole);
+                // Hide the tabs - players get either power OR behavior, not both
+                document.getElementById('role-nav-tabs').style.display = 'none';
+                
+                // Show the appropriate role
+                if (gameState.myRole && gameState.myRole !== 'no_role') {
+                    // Player has a power role
+                    displayRoleCard(gameState.myRole);
+                } else {
+                    // Player has a behavior role instead
+                    displayBehaviorCard(gameState.myBehavior);
+                }
                 showScreen('role-screen');
                 
             } catch (error) {

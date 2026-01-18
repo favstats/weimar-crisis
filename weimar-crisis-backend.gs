@@ -473,13 +473,22 @@ function dealRoles(gameCode, playerId) {
   const shuffledRoles = shuffleArray(rolesToDeal);
   const shuffledBehaviors = shuffleArray(behaviorsToAssign);
   
-  // Assign both power roles and behavior roles to players
+  // Assign power roles OR behavior roles (not both!)
+  // Players with power roles don't get behavior roles
+  // Players without power roles get behavior roles instead
+  let behaviorIndex = 0;
   for (let i = 0; i < playerRows.length; i++) {
-    const role = i < shuffledRoles.length ? shuffledRoles[i] : 'no_role';
-    const behavior = i < shuffledBehaviors.length ? shuffledBehaviors[i] : 'no_behavior';
-    
-    playersSheet.getRange(playerRows[i].row, 5).setValue(role);     // Column E = power role
-    playersSheet.getRange(playerRows[i].row, 8).setValue(behavior); // Column H = behavior role
+    if (i < shuffledRoles.length) {
+      // This player gets a power role, no behavior
+      playersSheet.getRange(playerRows[i].row, 5).setValue(shuffledRoles[i]); // Column E = power role
+      playersSheet.getRange(playerRows[i].row, 8).setValue('no_behavior');    // Column H = no behavior
+    } else {
+      // This player gets no power role, assign behavior instead
+      const behavior = behaviorIndex < shuffledBehaviors.length ? shuffledBehaviors[behaviorIndex] : 'no_behavior';
+      playersSheet.getRange(playerRows[i].row, 5).setValue('no_role');        // Column E = no power role
+      playersSheet.getRange(playerRows[i].row, 8).setValue(behavior);         // Column H = behavior role
+      behaviorIndex++;
+    }
   }
   
   // Update game status
