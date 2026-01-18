@@ -667,83 +667,40 @@
 
         .role-card {
             width: 300px;
-            height: 440px;
+            min-height: 380px;
             background: var(--cream);
-            border: 4px solid var(--brown);
-            position: relative;
+            border: 3px solid var(--brown);
             box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-            overflow: hidden;
-        }
-
-        /* Zigzag border at top */
-        .role-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 12px;
-            background: 
-                linear-gradient(135deg, var(--brown) 25%, transparent 25%) -6px 0,
-                linear-gradient(225deg, var(--brown) 25%, transparent 25%) -6px 0,
-                linear-gradient(315deg, var(--brown) 25%, transparent 25%),
-                linear-gradient(45deg, var(--brown) 25%, transparent 25%);
-            background-size: 12px 12px;
-            background-color: var(--cream);
-        }
-
-        /* Zigzag border at bottom */
-        .role-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 12px;
-            background: 
-                linear-gradient(135deg, var(--cream) 25%, transparent 25%) -6px 0,
-                linear-gradient(225deg, var(--cream) 25%, transparent 25%) -6px 0,
-                linear-gradient(315deg, var(--cream) 25%, transparent 25%),
-                linear-gradient(45deg, var(--cream) 25%, transparent 25%);
-            background-size: 12px 12px;
-            background-color: var(--brown);
         }
 
         .role-card-inner {
-            height: 100%;
             display: flex;
             flex-direction: column;
-            padding: 24px 16px 24px;
+            height: 100%;
         }
 
         /* Header section */
         .role-header {
             background: var(--tan);
-            border: 3px solid var(--brown);
-            padding: 16px;
+            padding: 16px 12px;
             text-align: center;
-            margin-bottom: 12px;
-            position: relative;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--brown);
         }
 
         .role-icon {
-            width: 64px;
-            height: 64px;
+            width: 48px;
+            height: 48px;
             margin: 0 auto 8px;
-            background: var(--brown);
+            color: var(--brown);
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
 
-        /* Diamond shape for icon */
-        .role-icon::before {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border: 2px solid var(--brown);
-            transform: rotate(45deg);
+        .role-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .role-icon svg {
@@ -767,53 +724,49 @@
         /* Power section */
         .role-power {
             flex: 1;
-            padding: 0 8px;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .power-label {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 0.25em;
-            color: var(--brown-light);
-            text-align: center;
-            margin-bottom: 4px;
+        .power-name-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
         .power-name {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
+            font-family: 'Bebas Neue', sans-serif;
             color: var(--brown);
-            text-align: center;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-            border-bottom: 3px solid var(--tan);
-            position: relative;
+            letter-spacing: 0.05em;
         }
 
-        /* Diamond accent on power name border */
-        .power-name::after {
-            content: '◆';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--cream);
-            padding: 0 8px;
+        .once-badge {
+            font-family: 'Bebas Neue', sans-serif;
             font-size: 0.7rem;
-            color: var(--tan);
+            letter-spacing: 0.1em;
+            background: var(--red);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 2px;
         }
 
         .power-desc {
-            font-size: 0.95rem;
+            font-size: 1rem;
             color: var(--brown);
             text-align: center;
-            line-height: 1.45;
+            line-height: 1.5;
         }
 
         .power-note {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--brown-light);
             text-align: center;
-            margin-top: 10px;
+            margin-top: 12px;
             font-style: italic;
         }
 
@@ -1985,17 +1938,13 @@
                             <div class="role-subtitle title-german">${role.subtitle}</div>
                         </div>
                         <div class="role-power">
-                            ${role.powerLabel ? `<div class="power-label title-english">${role.powerLabel}</div>` : ''}
-                            ${role.powerName ? `<div class="power-name title-english">${role.powerName}</div>` : ''}
+                            <div class="power-name-row">
+                                ${role.powerName ? `<div class="power-name title-english">${role.powerName}</div>` : ''}
+                                ${role.powerLabel ? `<span class="once-badge">ONCE</span>` : ''}
+                            </div>
                             <div class="power-desc">${role.powerDesc}</div>
                             ${role.powerNote ? `<div class="power-note">${role.powerNote}</div>` : ''}
                         </div>
-                        ${role.quote ? `
-                            <div class="role-quote">
-                                <div class="quote-text">${role.quote}</div>
-                                <div class="quote-attr">${role.quoteAttr}</div>
-                            </div>
-                        ` : ''}
                     </div>
                 </div>
             `;
