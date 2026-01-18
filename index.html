@@ -1469,7 +1469,7 @@
         };
 
         // API endpoint - Apps Script Web App URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxdCh6SQjhUjNOgjRd0o07Vv2bHlj6u4yJsJ0Sy3EjktJ_f1g4GogYTf4ujM7PLCiaT/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbypANwSZmFjgPWxgzYTVwAoZUElXweZj_qt2xTo2N5uAsXAtm7bPxAWB4BiXZGICZ4T/exec';
         
         // Polling interval (ms)
         const POLL_INTERVAL = 3000;
@@ -1516,10 +1516,7 @@
         function leaveGame() {
             if (confirm('Leave the game and return to the start screen?')) {
                 // Stop polling first
-                if (lobbyPollInterval) {
-                    clearInterval(lobbyPollInterval);
-                    lobbyPollInterval = null;
-                }
+                stopPolling();
                 
                 // Clear ALL stored game data
                 localStorage.removeItem('weimarCrisis');
