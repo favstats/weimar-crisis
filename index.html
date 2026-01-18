@@ -118,6 +118,13 @@
             margin-bottom: 8px;
         }
 
+        .logo-fraktur {
+            font-family: 'UnifrakturCook', cursive;
+            font-size: 3.2rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
         .logo-subtitle {
             font-size: 1.8rem;
             color: var(--brown);
@@ -165,6 +172,82 @@
             color: var(--brown);
             border: 3px solid var(--brown);
             box-shadow: 0 4px 0 var(--tan);
+        }
+
+        .btn-inspect {
+            background: transparent;
+            color: var(--cream);
+            border: 2px solid var(--cream);
+            font-size: 0.9rem;
+            padding: 10px 20px;
+            opacity: 0.7;
+            margin-top: 16px;
+        }
+
+        .btn-inspect:hover {
+            opacity: 1;
+            background: rgba(212, 197, 169, 0.1);
+        }
+
+        /* ============================================
+           INSPECT ROLES SCREEN
+           ============================================ */
+        .inspect-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .inspect-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--cream);
+            text-align: center;
+            margin-bottom: 24px;
+            letter-spacing: 0.1em;
+        }
+
+        .inspect-role-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .inspect-role-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--cream);
+            border: 3px solid var(--brown);
+            color: var(--brown);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .inspect-role-btn:hover {
+            background: var(--brown);
+            color: var(--cream);
+            transform: translateY(-2px);
+        }
+
+        .inspect-role-btn:active {
+            transform: translateY(0);
+        }
+
+        .inspect-role-icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .inspect-role-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .join-input-group {
@@ -933,8 +1016,7 @@
                     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11H7V7.18L12 5z"/>
                 </svg>
             </div>
-            <h1 class="logo-title title-english">Weimar Crisis</h1>
-            <h2 class="logo-subtitle title-german">Weimarer Krise</h2>
+            <h1 class="logo-title logo-fraktur">Weimar Criſis</h1>
         </div>
         <div class="start-buttons">
             <button class="btn btn-primary" onclick="showScreen('name-screen', true)">Create New Game</button>
@@ -942,6 +1024,26 @@
                 <input type="text" class="join-input" id="join-code-input" placeholder="GAME CODE" maxlength="10">
                 <button class="btn btn-secondary btn-join" onclick="joinWithCode()">Join</button>
             </div>
+            <button class="btn btn-inspect" onclick="showScreen('inspect-screen')">Inspect Roles</button>
+        </div>
+    </div>
+
+    <!-- ==================== INSPECT ROLES SCREEN ==================== -->
+    <div id="inspect-screen" class="screen">
+        <button class="back-btn" onclick="showScreen('start-screen')">←</button>
+        <div class="inspect-container">
+            <h2 class="inspect-title title-english">Inspect Roles</h2>
+            <div class="inspect-role-list" id="inspect-role-list">
+                <!-- Role buttons will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== INSPECT ROLE DISPLAY SCREEN ==================== -->
+    <div id="inspect-role-screen" class="screen">
+        <button class="back-btn" onclick="showScreen('inspect-screen')">←</button>
+        <div class="role-card-container" id="inspect-role-card-container">
+            <!-- Role card will be inserted here -->
         </div>
     </div>
 
@@ -1153,7 +1255,7 @@
         };
 
         // API endpoint - Apps Script Web App URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbygIoLluQV9YG83j1TK8C7ADuk2HR5sE9fKYYNrUZX5fu0C1jq_U5PD949zIndkVQQn/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwPHGvGuv4IYwrgQlIeEKIw629TvaBoHHlr_dU4pSr4t7wRHcQWMlg9GSYYE8Mt0253/exec';
         
         // Polling interval (ms)
         const POLL_INTERVAL = 3000;
@@ -1186,6 +1288,31 @@
                 gameState.isHost = isCreating;
                 document.getElementById('player-name-input').focus();
             }
+            
+            if (screenId === 'inspect-screen') {
+                populateInspectRoleList();
+            }
+        }
+
+        // ==================== INSPECT ROLES ====================
+        function populateInspectRoleList() {
+            const container = document.getElementById('inspect-role-list');
+            const allRoleIds = [...ALL_SPECIAL_ROLES, 'no_role'];
+            
+            container.innerHTML = allRoleIds.map(roleId => {
+                const role = ROLES[roleId];
+                return `
+                    <button class="inspect-role-btn" onclick="inspectRole('${roleId}')">
+                        <span class="inspect-role-icon">${role.icon}</span>
+                        <span>${role.title}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function inspectRole(roleId) {
+            displayRoleCard(roleId, 'inspect-role-card-container');
+            showScreen('inspect-role-screen');
         }
 
         // ==================== GAME ACTIONS ====================
@@ -1474,11 +1601,11 @@
             }
         }
 
-        function displayRoleCard(roleId) {
+        function displayRoleCard(roleId, containerId = 'role-card-container') {
             const role = ROLES[roleId];
             if (!role) return;
             
-            const container = document.getElementById('role-card-container');
+            const container = document.getElementById(containerId);
             
             if (roleId === 'no_role') {
                 container.innerHTML = `
