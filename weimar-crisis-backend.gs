@@ -18,7 +18,7 @@ const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE'; // Replace with your Google Sheet 
 const GAMES_SHEET = 'Games';
 const PLAYERS_SHEET = 'Players';
 
-// Available roles
+// Available power roles
 const ROLES = [
   'police_chief',
   'assassin', 
@@ -26,6 +26,15 @@ const ROLES = [
   'industrialist',
   'union_organizer',
   'constitutional_judge'
+];
+
+// Available behavior roles
+const BEHAVIORS = [
+  'feminist', 'misogynist', 'aristocrat', 'proletarian', 
+  'pacifist', 'militarist', 'monarchist', 'revolutionary',
+  'prussian', 'bavarian', 'devout', 'atheist', 
+  'academic', 'worker', 'veteran', 
+  'paranoid', 'optimist', 'cynic', 'hothead'
 ];
 
 // ==================== WEB APP ENTRY POINTS ====================
@@ -79,7 +88,7 @@ function handleRequest(params) {
         result = checkGameStatus(params.gameCode);
         break;
       case 'updateRoleConfig':
-        result = updateRoleConfig(params.gameCode, params.playerId, params.roleConfig);
+        result = updateRoleConfig(params.gameCode, params.playerId, params.roleConfig, params.behaviorConfig);
         break;
       case 'getRoleConfig':
         result = getRoleConfig(params.gameCode);
@@ -283,10 +292,11 @@ function getPlayers(gameCode) {
  * Update role configuration (host only)
  * @param {string} gameCode - The game code
  * @param {string} playerId - The requesting player's ID (must be host)
- * @param {object} roleConfig - The new role configuration
+ * @param {object} roleConfig - The power role configuration
+ * @param {object} behaviorConfig - The behavior role configuration
  * @returns {object} Success status
  */
-function updateRoleConfig(gameCode, playerId, roleConfig) {
+function updateRoleConfig(gameCode, playerId, roleConfig, behaviorConfig) {
   if (!gameCode || !playerId) {
     return { success: false, error: 'Game code and player ID are required' };
   }
@@ -317,12 +327,17 @@ function updateRoleConfig(gameCode, playerId, roleConfig) {
     return { success: false, error: 'Only the host can update role configuration' };
   }
   
-  // Update role config (Column F)
-  gamesSheet.getRange(gameRow, 6).setValue(JSON.stringify(roleConfig));
+  // Update role config (Column F) and behavior config (Column G)
+  const configData = {
+    roleConfig: roleConfig,
+    behaviorConfig: behaviorConfig
+  };
+  gamesSheet.getRange(gameRow, 6).setValue(JSON.stringify(configData));
   
   return {
     success: true,
-    roleConfig: roleConfig
+    roleConfig: roleConfig,
+    behaviorConfig: behaviorConfig
   };
 }
 
@@ -384,18 +399,24 @@ function dealRoles(gameCode, playerId) {
   const gamesData = gamesSheet.getDataRange().getValues();
   let gameRow = -1;
   let hostId = '';
-  let roleConfig = { mode: 'random', count: 6, roles: ROLES };
+  let configData = { 
+    roleConfig: { mode: 'random', count: 6, roles: ROLES },
+    behaviorConfig: { mode: 'random', count: 19, behaviors: BEHAVIORS }
+  };
   
   for (let i = 1; i < gamesData.length; i++) {
     if (gamesData[i][0] === gameCode) {
       gameRow = i + 1;
       hostId = gamesData[i][1];
       try {
-        roleConfig = JSON.parse(gamesData[i][5] || '{}');
+        configData = JSON.parse(gamesData[i][5] || '{}');
       } catch (e) {}
       break;
     }
   }
+  
+  const roleConfig = configData.roleConfig || { mode: 'random', count: 6, roles: ROLES };
+  const behaviorConfig = configData.behaviorConfig || { mode: 'random', count: 19, behaviors: BEHAVIORS };
   
   if (gameRow === -1) {
     return { success: false, error: 'Game not found' };
@@ -422,28 +443,43 @@ function dealRoles(gameCode, playerId) {
     return { success: false, error: 'Need at least 2 players to deal roles' };
   }
   
-  // Determine which roles to use based on config
+  // Determine which POWER roles to use
   let rolesToDeal = [];
-  
   if (roleConfig.mode === 'specific' && roleConfig.roles && roleConfig.roles.length > 0) {
-    // Use specific roles selected by host
     rolesToDeal = [...roleConfig.roles];
-  } else if (roleConfig.mode === 'count' && roleConfig.count) {
-    // Random selection of N roles
+  } else if (roleConfig.mode === 'count' && roleConfig.count !== undefined) {
     const shuffledAllRoles = shuffleArray([...ROLES]);
     rolesToDeal = shuffledAllRoles.slice(0, Math.min(roleConfig.count, ROLES.length));
   } else {
-    // Default: all roles (random mode)
     rolesToDeal = [...ROLES];
   }
   
-  // Shuffle the roles to deal
-  const shuffledRoles = shuffleArray(rolesToDeal);
+  // Determine which BEHAVIOR roles to use
+  let behaviorsToAssign = [];
+  if (behaviorConfig.mode === 'specific' && behaviorConfig.behaviors && behaviorConfig.behaviors.length > 0) {
+    behaviorsToAssign = [...behaviorConfig.behaviors];
+  } else if (behaviorConfig.mode === 'count' && behaviorConfig.count !== undefined) {
+    if (behaviorConfig.count === 0) {
+      behaviorsToAssign = [];
+    } else {
+      const shuffledAllBehaviors = shuffleArray([...BEHAVIORS]);
+      behaviorsToAssign = shuffledAllBehaviors.slice(0, Math.min(behaviorConfig.count, BEHAVIORS.length));
+    }
+  } else {
+    behaviorsToAssign = [...BEHAVIORS];
+  }
   
-  // Assign roles to players - extras get 'no_role'
+  // Shuffle both sets
+  const shuffledRoles = shuffleArray(rolesToDeal);
+  const shuffledBehaviors = shuffleArray(behaviorsToAssign);
+  
+  // Assign both power roles and behavior roles to players
   for (let i = 0; i < playerRows.length; i++) {
     const role = i < shuffledRoles.length ? shuffledRoles[i] : 'no_role';
-    playersSheet.getRange(playerRows[i].row, 5).setValue(role); // Column E = role
+    const behavior = i < shuffledBehaviors.length ? shuffledBehaviors[i] : 'no_behavior';
+    
+    playersSheet.getRange(playerRows[i].row, 5).setValue(role);     // Column E = power role
+    playersSheet.getRange(playerRows[i].row, 8).setValue(behavior); // Column H = behavior role
   }
   
   // Update game status
@@ -480,7 +516,8 @@ function getMyRole(gameCode, playerId) {
   
   for (let i = 1; i < playersData.length; i++) {
     if (playersData[i][0] === gameCode && playersData[i][1] === playerId) {
-      const role = playersData[i][4];
+      const role = playersData[i][4];       // Column E = power role
+      const behavior = playersData[i][7];   // Column H = behavior role
       
       if (!role) {
         return { success: false, error: 'Roles have not been dealt yet' };
@@ -491,7 +528,8 @@ function getMyRole(gameCode, playerId) {
       
       return {
         success: true,
-        role: role
+        role: role,
+        behavior: behavior || 'no_behavior'
       };
     }
   }
@@ -538,13 +576,13 @@ function ensureSheetsExist(ss) {
   let gamesSheet = ss.getSheetByName(GAMES_SHEET);
   if (!gamesSheet) {
     gamesSheet = ss.insertSheet(GAMES_SHEET);
-    gamesSheet.appendRow(['gameCode', 'hostId', 'status', 'createdAt', 'rolesDealtAt', 'roleConfig']);
+    gamesSheet.appendRow(['gameCode', 'hostId', 'status', 'createdAt', 'rolesDealtAt', 'configData']);
   }
   
   let playersSheet = ss.getSheetByName(PLAYERS_SHEET);
   if (!playersSheet) {
     playersSheet = ss.insertSheet(PLAYERS_SHEET);
-    playersSheet.appendRow(['gameCode', 'playerId', 'playerName', 'isHost', 'role', 'revealed', 'joinedAt']);
+    playersSheet.appendRow(['gameCode', 'playerId', 'playerName', 'isHost', 'role', 'revealed', 'joinedAt', 'behavior']);
   }
 }
 

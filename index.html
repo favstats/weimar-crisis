@@ -1004,6 +1004,75 @@
             margin-top: 16px;
             font-style: italic;
         }
+
+        /* Behavior Card */
+        .behavior-card {
+            border-color: var(--blue);
+        }
+
+        .behavior-card .role-header {
+            border-bottom-color: var(--blue);
+        }
+
+        .behavior-desc {
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .behavior-reminder {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--tan);
+            font-size: 0.85rem;
+            color: var(--brown-light);
+            text-align: center;
+        }
+
+        /* Inspect Section Title */
+        .inspect-section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            color: var(--cream);
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+
+        /* Role Navigation Tabs */
+        .role-screen-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .role-nav-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .role-nav-tab {
+            padding: 10px 20px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            background: var(--cream);
+            color: var(--brown);
+            border: 2px solid var(--brown);
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.6;
+        }
+
+        .role-nav-tab.active {
+            opacity: 1;
+            background: var(--brown);
+            color: var(--cream);
+        }
+
+        .role-nav-tab:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -1075,9 +1144,9 @@
                 </ul>
             </div>
 
-            <!-- Role Configuration (Host Only) -->
+            <!-- Power Role Configuration (Host Only) -->
             <div class="role-config" id="role-config" style="display: none;">
-                <div class="role-config-title title-english">Role Configuration</div>
+                <div class="role-config-title title-english">⚡ Power Roles</div>
                 <div class="role-config-mode">
                     <label class="role-mode-option">
                         <input type="radio" name="roleMode" value="random" checked onchange="updateRoleMode()">
@@ -1087,6 +1156,7 @@
                         <input type="radio" name="roleMode" value="count" onchange="updateRoleMode()">
                         <span>Number of roles:</span>
                         <select id="role-count-select" onchange="updateRoleCount()" disabled>
+                            <option value="0">0</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>
@@ -1097,14 +1167,45 @@
                     </label>
                     <label class="role-mode-option">
                         <input type="radio" name="roleMode" value="specific" onchange="updateRoleMode()">
-                        <span>Choose specific roles:</span>
+                        <span>Choose specific:</span>
                     </label>
                 </div>
                 <div class="role-checkboxes" id="role-checkboxes" style="display: none;">
                     <!-- Role checkboxes will be generated -->
                 </div>
                 <div class="role-config-info" id="role-config-info">
-                    Extra players will receive "No Special Role"
+                    Extra players will receive "No Power Role"
+                </div>
+            </div>
+
+            <!-- Behavior Role Configuration (Host Only) -->
+            <div class="role-config" id="behavior-config" style="display: none;">
+                <div class="role-config-title title-english">🎭 Behavior Roles</div>
+                <div class="role-config-mode">
+                    <label class="role-mode-option">
+                        <input type="radio" name="behaviorMode" value="random" checked onchange="updateBehaviorMode()">
+                        <span>Random selection</span>
+                    </label>
+                    <label class="role-mode-option">
+                        <input type="radio" name="behaviorMode" value="count" onchange="updateBehaviorMode()">
+                        <span>Number of behaviors:</span>
+                        <select id="behavior-count-select" onchange="updateBehaviorCount()" disabled>
+                            <option value="0">0 (none)</option>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="19" selected>All (19)</option>
+                        </select>
+                    </label>
+                    <label class="role-mode-option">
+                        <input type="radio" name="behaviorMode" value="specific" onchange="updateBehaviorMode()">
+                        <span>Choose specific:</span>
+                    </label>
+                </div>
+                <div class="role-checkboxes" id="behavior-checkboxes" style="display: none;">
+                    <!-- Behavior checkboxes will be generated -->
+                </div>
+                <div class="role-config-info" id="behavior-config-info">
+                    Each player also gets a random behavior role
                 </div>
             </div>
 
@@ -1147,8 +1248,14 @@
     <!-- ==================== ROLE DISPLAY SCREEN ==================== -->
     <div id="role-screen" class="screen">
         <button class="back-btn" onclick="hideRole()">←</button>
-        <div class="role-card-container" id="role-card-container">
-            <!-- Role card will be inserted here -->
+        <div class="role-screen-content">
+            <div class="role-nav-tabs" id="role-nav-tabs">
+                <button class="role-nav-tab active" id="power-tab" onclick="showPowerRole()">⚡ Power</button>
+                <button class="role-nav-tab" id="behavior-tab" onclick="showBehaviorRole()">🎭 Behavior</button>
+            </div>
+            <div class="role-card-container" id="role-card-container">
+                <!-- Role card will be inserted here -->
+            </div>
         </div>
     </div>
 
@@ -1243,6 +1350,130 @@
             }
         };
 
+        // ==================== BEHAVIOR ROLES ====================
+        const BEHAVIOR_ROLES = {
+            'feminist': {
+                title: 'The Feminist',
+                subtitle: 'Die Feministin',
+                behavior: 'You are distrustful of men in positions of power.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13v8M9 18h6" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'misogynist': {
+                title: 'The Misogynist',
+                subtitle: 'Der Frauenfeind',
+                behavior: 'You are distrustful of women in positions of power.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 5l3-3M20 5V2h-3" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'aristocrat': {
+                title: 'The Aristocrat',
+                subtitle: 'Der Ariſtokrat',
+                behavior: 'You distrust common workers and prefer refined, educated types.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'proletarian': {
+                title: 'The Proletarian',
+                subtitle: 'Der Proletarier',
+                behavior: 'You distrust the wealthy and elite classes.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="3" fill="currentColor"/><path d="M6 22v-6a6 6 0 0112 0v6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 12l-4 4M16 12l4 4" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'pacifist': {
+                title: 'The Pacifist',
+                subtitle: 'Der Paziſist',
+                behavior: 'You distrust anyone who speaks of violence or military force.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v20M12 12l-7 7M12 12l7 7" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'militarist': {
+                title: 'The Militarist',
+                subtitle: 'Der Militariſt',
+                behavior: 'You distrust anyone who seems weak, indecisive, or cowardly.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2v8l4 2v10H8V12l4-2V2z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="5" r="2" fill="currentColor"/></svg>`
+            },
+            'monarchist': {
+                title: 'The Monarchist',
+                subtitle: 'Der Monarchiſt',
+                behavior: 'You secretly miss the Kaiser and distrust republicans and democrats.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M5 20l2-8 5 4 5-4 2 8H5zM12 4l-3 4h6l-3-4z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'revolutionary': {
+                title: 'The Revolutionary',
+                subtitle: 'Der Revolutionär',
+                behavior: 'You distrust moderates and anyone who resists radical change.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2v6M12 8l8 4-8 4-8-4 8-4zM12 16v6" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="8" r="2" fill="currentColor"/></svg>`
+            },
+            'prussian': {
+                title: 'The Prussian',
+                subtitle: 'Der Preuße',
+                behavior: 'You value discipline and order. You distrust those who lack it.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3 9-8 10-5-1-8-5-8-10V6l8-4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'bavarian': {
+                title: 'The Bavarian',
+                subtitle: 'Der Bayer',
+                behavior: 'You distrust centralized Berlin authority and Prussian influence.',
+                icon: `<svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 8c0-3 3.6-6 8-6s8 3 8 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'devout': {
+                title: 'The Devout',
+                subtitle: 'Der Fromme',
+                behavior: 'You distrust atheists, secularists, and the morally loose.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2v20M7 7h10" stroke="currentColor" stroke-width="2.5"/></svg>`
+            },
+            'atheist': {
+                title: 'The Atheist',
+                subtitle: 'Der Atheiſt',
+                behavior: 'You distrust the overtly religious and those who invoke God.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'academic': {
+                title: 'The Academic',
+                subtitle: 'Der Akademiker',
+                behavior: 'You distrust the uneducated and those who rely on emotion over reason.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 3L2 9l10 6 10-6-10-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 11v6c0 2 3 4 6 4s6-2 6-4v-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'worker': {
+                title: 'The Worker',
+                subtitle: 'Der Arbeiter',
+                behavior: 'You distrust intellectuals, academics, and elites who never labored.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M14 6l-3.5 3.5L7 6M7 18l3.5-3.5L14 18" stroke="currentColor" stroke-width="2.5" fill="none"/><circle cx="17" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'veteran': {
+                title: 'The Veteran',
+                subtitle: 'Der Veteran',
+                behavior: 'You only truly trust fellow soldiers who served in the war.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1 2-4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 15v7M16 15v7M12 17v5" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'paranoid': {
+                title: 'The Paranoid',
+                subtitle: 'Der Paranoide',
+                behavior: 'You trust absolutely no one. Everyone has hidden agendas.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M8 16c0-2 2-3 4-3s4 1 4 3" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'optimist': {
+                title: 'The Optimist',
+                subtitle: 'Der Optimiſt',
+                behavior: 'You always give people the benefit of the doubt. Perhaps too trusting.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M8 14c0 2 2 4 4 4s4-2 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'cynic': {
+                title: 'The Cynic',
+                subtitle: 'Der Zyniker',
+                behavior: 'You assume everyone has ulterior motives and acts from self-interest.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M8 17l8-3" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'hothead': {
+                title: 'The Hothead',
+                subtitle: 'Der Hitzkopf',
+                behavior: 'You make decisions based on emotion and instinct, not logic.',
+                icon: `<svg viewBox="0 0 24 24"><path d="M12 2c-3 0-5 2-5 5 0 2 1 3 1 5 0 1-1 2-1 3 0 3 2 5 5 5s5-2 5-5c0-1-1-2-1-3 0-2 1-3 1-5 0-3-2-5-5-5z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l2 2 2-2" stroke="currentColor" stroke-width="2"/></svg>`
+            },
+            'no_behavior': {
+                title: 'No Behavior Role',
+                subtitle: 'Keine Verhaltensrolle',
+                behavior: 'You have no assigned behavior. Play as yourself.',
+                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>`
+            }
+        };
+
         // ==================== APP STATE ====================
         let gameState = {
             gameCode: null,
@@ -1251,7 +1482,9 @@
             isHost: false,
             players: [],
             myRole: null,
-            rolesDealt: false
+            myBehavior: null,
+            rolesDealt: false,
+            revealStep: 0  // 0 = not revealed, 1 = power shown, 2 = behavior shown
         };
 
         // API endpoint - Apps Script Web App URL
@@ -1297,21 +1530,40 @@
         // ==================== INSPECT ROLES ====================
         function populateInspectRoleList() {
             const container = document.getElementById('inspect-role-list');
-            const allRoleIds = [...ALL_SPECIAL_ROLES, 'no_role'];
+            const powerRoleIds = [...ALL_SPECIAL_ROLES, 'no_role'];
+            const behaviorRoleIds = [...ALL_BEHAVIOR_ROLES, 'no_behavior'];
             
-            container.innerHTML = allRoleIds.map(roleId => {
+            let html = '<div class="inspect-section-title">⚡ Power Roles</div>';
+            html += powerRoleIds.map(roleId => {
                 const role = ROLES[roleId];
                 return `
-                    <button class="inspect-role-btn" onclick="inspectRole('${roleId}')">
+                    <button class="inspect-role-btn" onclick="inspectRole('${roleId}', 'power')">
                         <span class="inspect-role-icon">${role.icon}</span>
                         <span>${role.title}</span>
                     </button>
                 `;
             }).join('');
+            
+            html += '<div class="inspect-section-title" style="margin-top: 20px;">🎭 Behavior Roles</div>';
+            html += behaviorRoleIds.map(behaviorId => {
+                const behavior = BEHAVIOR_ROLES[behaviorId];
+                return `
+                    <button class="inspect-role-btn" onclick="inspectRole('${behaviorId}', 'behavior')">
+                        <span class="inspect-role-icon">${behavior.icon}</span>
+                        <span>${behavior.title}</span>
+                    </button>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
         }
 
-        function inspectRole(roleId) {
-            displayRoleCard(roleId, 'inspect-role-card-container');
+        function inspectRole(roleId, type = 'power') {
+            if (type === 'behavior') {
+                displayBehaviorCard(roleId, 'inspect-role-card-container');
+            } else {
+                displayRoleCard(roleId, 'inspect-role-card-container');
+            }
             showScreen('inspect-role-screen');
         }
 
@@ -1411,11 +1663,12 @@
             try {
                 showStatus('Dealing roles...');
                 
-                // First update role config on server
+                // First update role config on server (both power and behavior)
                 await callAPI('updateRoleConfig', {
                     gameCode: gameState.gameCode,
                     playerId: gameState.playerId,
-                    roleConfig: roleConfig
+                    roleConfig: roleConfig,
+                    behaviorConfig: behaviorConfig
                 });
                 
                 // Then deal roles
@@ -1442,7 +1695,7 @@
 
         async function revealRole() {
             try {
-                // Fetch role from API
+                // Fetch both roles from API
                 showStatus('Revealing role...');
                 const result = await callAPI('getMyRole', {
                     gameCode: gameState.gameCode,
@@ -1454,14 +1707,42 @@
                 }
                 
                 gameState.myRole = result.role;
+                gameState.myBehavior = result.behavior || 'no_behavior';
+                gameState.revealStep = 1;
                 saveGameState();
                 
+                // Show power role first
                 displayRoleCard(gameState.myRole);
                 showScreen('role-screen');
                 
             } catch (error) {
                 showStatus('Failed to reveal role: ' + error.message, true);
                 console.error(error);
+            }
+        }
+
+        function showPowerRole() {
+            gameState.revealStep = 1;
+            displayRoleCard(gameState.myRole);
+            updateRoleNavTabs();
+        }
+
+        function showBehaviorRole() {
+            gameState.revealStep = 2;
+            displayBehaviorCard(gameState.myBehavior);
+            updateRoleNavTabs();
+        }
+
+        function updateRoleNavTabs() {
+            const powerTab = document.getElementById('power-tab');
+            const behaviorTab = document.getElementById('behavior-tab');
+            
+            if (gameState.revealStep === 1) {
+                powerTab.classList.add('active');
+                behaviorTab.classList.remove('active');
+            } else {
+                powerTab.classList.remove('active');
+                behaviorTab.classList.add('active');
             }
         }
 
@@ -1496,12 +1777,16 @@
             `).join('');
             
             // Show role config only for host
-            const roleConfig = document.getElementById('role-config');
+            const roleConfigEl = document.getElementById('role-config');
+            const behaviorConfigEl = document.getElementById('behavior-config');
             if (gameState.isHost) {
-                roleConfig.style.display = 'block';
+                roleConfigEl.style.display = 'block';
+                behaviorConfigEl.style.display = 'block';
                 initRoleCheckboxes();
+                initBehaviorCheckboxes();
             } else {
-                roleConfig.style.display = 'none';
+                roleConfigEl.style.display = 'none';
+                behaviorConfigEl.style.display = 'none';
             }
             
             // Show deal button only for host with 2+ players
@@ -1517,24 +1802,28 @@
             if (gameState.players.length < 2) {
                 status.textContent = 'Need at least 2 players to start...';
             } else {
-                const specialRoles = getSelectedRoleCount();
-                const noRoleCount = Math.max(0, gameState.players.length - specialRoles);
-                if (noRoleCount > 0) {
-                    status.textContent = `${gameState.players.length} players ready (${noRoleCount} will get no special role)`;
-                } else {
-                    status.textContent = `${gameState.players.length} players ready`;
-                }
+                status.textContent = `${gameState.players.length} players ready`;
             }
             
             updateRoleConfigInfo();
+            updateBehaviorConfigInfo();
         }
 
         // Role configuration functions
+        // Power Roles
         const ALL_SPECIAL_ROLES = ['police_chief', 'assassin', 'journalist', 'industrialist', 'union_organizer', 'constitutional_judge'];
         let roleConfig = {
             mode: 'random',
             count: 6,
             roles: [...ALL_SPECIAL_ROLES]
+        };
+
+        // Behavior Roles
+        const ALL_BEHAVIOR_ROLES = ['feminist', 'misogynist', 'aristocrat', 'proletarian', 'pacifist', 'militarist', 'monarchist', 'revolutionary', 'prussian', 'bavarian', 'devout', 'atheist', 'academic', 'worker', 'veteran', 'paranoid', 'optimist', 'cynic', 'hothead'];
+        let behaviorConfig = {
+            mode: 'random',
+            count: 19,
+            behaviors: [...ALL_BEHAVIOR_ROLES]
         };
 
         function initRoleCheckboxes() {
@@ -1547,6 +1836,21 @@
                     <label class="role-checkbox">
                         <input type="checkbox" value="${roleId}" checked onchange="updateSelectedRoles()">
                         ${role.title}
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function initBehaviorCheckboxes() {
+            const container = document.getElementById('behavior-checkboxes');
+            if (container.children.length > 0) return; // Already initialized
+            
+            container.innerHTML = ALL_BEHAVIOR_ROLES.map(behaviorId => {
+                const behavior = BEHAVIOR_ROLES[behaviorId];
+                return `
+                    <label class="role-checkbox">
+                        <input type="checkbox" value="${behaviorId}" checked onchange="updateSelectedBehaviors()">
+                        ${behavior.title}
                     </label>
                 `;
             }).join('');
@@ -1565,15 +1869,39 @@
             updateRoleConfigInfo();
         }
 
+        function updateBehaviorMode() {
+            const mode = document.querySelector('input[name="behaviorMode"]:checked').value;
+            behaviorConfig.mode = mode;
+            
+            const countSelect = document.getElementById('behavior-count-select');
+            const checkboxes = document.getElementById('behavior-checkboxes');
+            
+            countSelect.disabled = (mode !== 'count');
+            checkboxes.style.display = (mode === 'specific') ? 'flex' : 'none';
+            
+            updateBehaviorConfigInfo();
+        }
+
         function updateRoleCount() {
             roleConfig.count = parseInt(document.getElementById('role-count-select').value);
             updateRoleConfigInfo();
+        }
+
+        function updateBehaviorCount() {
+            behaviorConfig.count = parseInt(document.getElementById('behavior-count-select').value);
+            updateBehaviorConfigInfo();
         }
 
         function updateSelectedRoles() {
             const checkboxes = document.querySelectorAll('#role-checkboxes input:checked');
             roleConfig.roles = Array.from(checkboxes).map(cb => cb.value);
             updateRoleConfigInfo();
+        }
+
+        function updateSelectedBehaviors() {
+            const checkboxes = document.querySelectorAll('#behavior-checkboxes input:checked');
+            behaviorConfig.behaviors = Array.from(checkboxes).map(cb => cb.value);
+            updateBehaviorConfigInfo();
         }
 
         function getSelectedRoleCount() {
@@ -1586,6 +1914,16 @@
             }
         }
 
+        function getSelectedBehaviorCount() {
+            if (behaviorConfig.mode === 'random') {
+                return ALL_BEHAVIOR_ROLES.length;
+            } else if (behaviorConfig.mode === 'count') {
+                return behaviorConfig.count;
+            } else {
+                return behaviorConfig.behaviors.length;
+            }
+        }
+
         function updateRoleConfigInfo() {
             const info = document.getElementById('role-config-info');
             const playerCount = gameState.players.length;
@@ -1593,11 +1931,30 @@
             const noRoleCount = Math.max(0, playerCount - roleCount);
             
             if (playerCount === 0) {
-                info.textContent = 'Extra players will receive "No Special Role"';
+                info.textContent = 'Extra players get "No Power Role"';
             } else if (noRoleCount > 0) {
-                info.textContent = `${noRoleCount} player(s) will receive "No Special Role"`;
+                info.textContent = `${noRoleCount} player(s) get "No Power Role"`;
             } else {
-                info.textContent = `All ${playerCount} players will receive a special role`;
+                info.textContent = `All ${playerCount} players get a power role`;
+            }
+        }
+
+        function updateBehaviorConfigInfo() {
+            const info = document.getElementById('behavior-config-info');
+            const playerCount = gameState.players.length;
+            const behaviorCount = getSelectedBehaviorCount();
+            
+            if (behaviorCount === 0) {
+                info.textContent = 'No behavior roles will be assigned';
+            } else if (playerCount === 0) {
+                info.textContent = `${behaviorCount} behavior roles available`;
+            } else {
+                const noBehaviorCount = Math.max(0, playerCount - behaviorCount);
+                if (noBehaviorCount > 0) {
+                    info.textContent = `${noBehaviorCount} player(s) get "No Behavior"`;
+                } else {
+                    info.textContent = `All players get a behavior role`;
+                }
             }
         }
 
@@ -1639,6 +1996,44 @@
                                 <div class="quote-attr">${role.quoteAttr}</div>
                             </div>
                         ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayBehaviorCard(behaviorId, containerId = 'role-card-container') {
+            const behavior = BEHAVIOR_ROLES[behaviorId];
+            if (!behavior) return;
+            
+            const container = document.getElementById(containerId);
+            
+            if (behaviorId === 'no_behavior') {
+                container.innerHTML = `
+                    <div class="no-role-card">
+                        <div class="no-role-icon">∅</div>
+                        <div class="no-role-text title-english">${behavior.title}</div>
+                        <div class="no-role-german title-german">${behavior.subtitle}</div>
+                        <div class="no-role-subtext">${behavior.behavior}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="role-card behavior-card">
+                    <div class="role-card-inner">
+                        <div class="role-header">
+                            <div class="role-icon">${behavior.icon}</div>
+                            <div class="role-title title-english">${behavior.title}</div>
+                            <div class="role-subtitle title-german">${behavior.subtitle}</div>
+                        </div>
+                        <div class="role-power">
+                            <div class="power-label title-english">Your Behavior</div>
+                            <div class="power-desc behavior-desc">${behavior.behavior}</div>
+                        </div>
+                        <div class="behavior-reminder">
+                            <em>Play this way throughout the game</em>
+                        </div>
                     </div>
                 </div>
             `;
