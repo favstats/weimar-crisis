@@ -364,6 +364,92 @@
         }
 
         /* ============================================
+           ROLE CONFIGURATION
+           ============================================ */
+        .role-config {
+            background: rgba(44, 36, 22, 0.1);
+            border: 1px solid var(--brown-light);
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+
+        .role-config-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            color: var(--brown);
+        }
+
+        .role-config-mode {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .role-mode-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--brown);
+        }
+
+        .role-mode-option input[type="radio"] {
+            accent-color: var(--red);
+        }
+
+        .role-mode-option select {
+            padding: 4px 8px;
+            font-size: 0.9rem;
+            border: 1px solid var(--brown-light);
+            background: var(--cream);
+            color: var(--brown);
+            font-family: inherit;
+        }
+
+        .role-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--brown-light);
+        }
+
+        .role-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: var(--cream);
+            border: 1px solid var(--brown-light);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .role-checkbox:has(input:checked) {
+            background: var(--brown);
+            color: var(--cream);
+            border-color: var(--brown);
+        }
+
+        .role-checkbox input {
+            display: none;
+        }
+
+        .role-config-info {
+            font-size: 0.8rem;
+            color: var(--brown-light);
+            margin-top: 12px;
+            font-style: italic;
+        }
+
+        /* ============================================
            WAITING SCREEN
            ============================================ */
         .waiting-container {
@@ -875,16 +961,49 @@
         <div class="lobby-container">
             <div class="lobby-code">
                 <div class="lobby-code-label title-english">Game Code</div>
-                <div class="lobby-code-value title-english" id="lobby-code-display">WEIMAR-XXXX</div>
+                <div class="lobby-code-value title-english" id="lobby-code-display">XXXX00</div>
             </div>
             
             <div class="lobby-players">
                 <div class="lobby-players-title title-english">
-                    Players (<span id="player-count">0</span>/10)
+                    Players (<span id="player-count">0</span>)
                 </div>
                 <ul class="player-list" id="player-list">
                     <!-- Players will be added dynamically -->
                 </ul>
+            </div>
+
+            <!-- Role Configuration (Host Only) -->
+            <div class="role-config" id="role-config" style="display: none;">
+                <div class="role-config-title title-english">Role Configuration</div>
+                <div class="role-config-mode">
+                    <label class="role-mode-option">
+                        <input type="radio" name="roleMode" value="random" checked onchange="updateRoleMode()">
+                        <span>All roles (random)</span>
+                    </label>
+                    <label class="role-mode-option">
+                        <input type="radio" name="roleMode" value="count" onchange="updateRoleMode()">
+                        <span>Number of roles:</span>
+                        <select id="role-count-select" onchange="updateRoleCount()" disabled>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6" selected>6</option>
+                        </select>
+                    </label>
+                    <label class="role-mode-option">
+                        <input type="radio" name="roleMode" value="specific" onchange="updateRoleMode()">
+                        <span>Choose specific roles:</span>
+                    </label>
+                </div>
+                <div class="role-checkboxes" id="role-checkboxes" style="display: none;">
+                    <!-- Role checkboxes will be generated -->
+                </div>
+                <div class="role-config-info" id="role-config-info">
+                    Extra players will receive "No Special Role"
+                </div>
             </div>
 
             <div class="lobby-status" id="lobby-status">Waiting for players...</div>
@@ -1034,7 +1153,7 @@
         };
 
         // API endpoint - Apps Script Web App URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzQ_edyjoc2MhAnvD-ZeatfkUrdqPYzmcZxb5wNLb7__Mn_qszX9n6mBd5WU7Lq4vwJ/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbygIoLluQV9YG83j1TK8C7ADuk2HR5sE9fKYYNrUZX5fu0C1jq_U5PD949zIndkVQQn/exec';
         
         // Polling interval (ms)
         const POLL_INTERVAL = 3000;
@@ -1042,16 +1161,14 @@
 
         // ==================== API HELPER ====================
         async function callAPI(action, params = {}) {
-            const url = new URL(API_URL);
-            url.searchParams.append('action', action);
-            Object.keys(params).forEach(key => {
-                url.searchParams.append(key, params[key]);
-            });
-            
             try {
-                const response = await fetch(url.toString(), {
-                    method: 'GET',
-                    mode: 'cors'
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
+                    body: JSON.stringify({ action, ...params })
                 });
                 return await response.json();
             } catch (error) {
@@ -1167,7 +1284,14 @@
             try {
                 showStatus('Dealing roles...');
                 
-                // Call API to deal roles
+                // First update role config on server
+                await callAPI('updateRoleConfig', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId,
+                    roleConfig: roleConfig
+                });
+                
+                // Then deal roles
                 const result = await callAPI('dealRoles', {
                     gameCode: gameState.gameCode,
                     playerId: gameState.playerId
@@ -1244,6 +1368,15 @@
                 </li>
             `).join('');
             
+            // Show role config only for host
+            const roleConfig = document.getElementById('role-config');
+            if (gameState.isHost) {
+                roleConfig.style.display = 'block';
+                initRoleCheckboxes();
+            } else {
+                roleConfig.style.display = 'none';
+            }
+            
             // Show deal button only for host with 2+ players
             const dealBtn = document.getElementById('deal-roles-btn');
             if (gameState.isHost && gameState.players.length >= 2) {
@@ -1257,7 +1390,87 @@
             if (gameState.players.length < 2) {
                 status.textContent = 'Need at least 2 players to start...';
             } else {
-                status.textContent = `${gameState.players.length} players ready`;
+                const specialRoles = getSelectedRoleCount();
+                const noRoleCount = Math.max(0, gameState.players.length - specialRoles);
+                if (noRoleCount > 0) {
+                    status.textContent = `${gameState.players.length} players ready (${noRoleCount} will get no special role)`;
+                } else {
+                    status.textContent = `${gameState.players.length} players ready`;
+                }
+            }
+            
+            updateRoleConfigInfo();
+        }
+
+        // Role configuration functions
+        const ALL_SPECIAL_ROLES = ['police_chief', 'assassin', 'journalist', 'industrialist', 'union_organizer', 'constitutional_judge'];
+        let roleConfig = {
+            mode: 'random',
+            count: 6,
+            roles: [...ALL_SPECIAL_ROLES]
+        };
+
+        function initRoleCheckboxes() {
+            const container = document.getElementById('role-checkboxes');
+            if (container.children.length > 0) return; // Already initialized
+            
+            container.innerHTML = ALL_SPECIAL_ROLES.map(roleId => {
+                const role = ROLES[roleId];
+                return `
+                    <label class="role-checkbox">
+                        <input type="checkbox" value="${roleId}" checked onchange="updateSelectedRoles()">
+                        ${role.title}
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function updateRoleMode() {
+            const mode = document.querySelector('input[name="roleMode"]:checked').value;
+            roleConfig.mode = mode;
+            
+            const countSelect = document.getElementById('role-count-select');
+            const checkboxes = document.getElementById('role-checkboxes');
+            
+            countSelect.disabled = (mode !== 'count');
+            checkboxes.style.display = (mode === 'specific') ? 'flex' : 'none';
+            
+            updateRoleConfigInfo();
+        }
+
+        function updateRoleCount() {
+            roleConfig.count = parseInt(document.getElementById('role-count-select').value);
+            updateRoleConfigInfo();
+        }
+
+        function updateSelectedRoles() {
+            const checkboxes = document.querySelectorAll('#role-checkboxes input:checked');
+            roleConfig.roles = Array.from(checkboxes).map(cb => cb.value);
+            updateRoleConfigInfo();
+        }
+
+        function getSelectedRoleCount() {
+            if (roleConfig.mode === 'random') {
+                return ALL_SPECIAL_ROLES.length;
+            } else if (roleConfig.mode === 'count') {
+                return roleConfig.count;
+            } else {
+                return roleConfig.roles.length;
+            }
+        }
+
+        function updateRoleConfigInfo() {
+            const info = document.getElementById('role-config-info');
+            const playerCount = gameState.players.length;
+            const roleCount = getSelectedRoleCount();
+            const noRoleCount = Math.max(0, playerCount - roleCount);
+            
+            if (playerCount === 0) {
+                info.textContent = 'Extra players will receive "No Special Role"';
+            } else if (noRoleCount > 0) {
+                info.textContent = `${noRoleCount} player(s) will receive "No Special Role"`;
+            } else {
+                info.textContent = `All ${playerCount} players will receive a special role`;
             }
         }
 

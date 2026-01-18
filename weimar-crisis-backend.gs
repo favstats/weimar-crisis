@@ -9,7 +9,7 @@
  * 5. Set "Execute as" to "Me"
  * 6. Set "Who has access" to "Anyone"
  * 7. Click Deploy and copy the Web App URL
- * 8. Paste the URL into orban.html where it says API_URL
+ * 8. Paste the URL into index.html where it says API_URL
  * 9. Create a Google Sheet and copy its ID into SHEET_ID below
  */
 
@@ -31,43 +31,61 @@ const ROLES = [
 // ==================== WEB APP ENTRY POINTS ====================
 
 function doGet(e) {
-  return handleRequest(e);
+  // Handle GET requests (for simple tests)
+  return handleRequest(e.parameter);
 }
 
 function doPost(e) {
-  return handleRequest(e);
+  // Handle POST requests with JSON body
+  let params = {};
+  
+  try {
+    if (e.postData && e.postData.contents) {
+      params = JSON.parse(e.postData.contents);
+    }
+  } catch (err) {
+    // Fallback to URL parameters
+    params = e.parameter || {};
+  }
+  
+  return handleRequest(params);
 }
 
-function handleRequest(e) {
-  // Enable CORS
+function handleRequest(params) {
   const output = ContentService.createTextOutput();
   output.setMimeType(ContentService.MimeType.JSON);
   
   try {
-    const action = e.parameter.action;
+    const action = params.action;
     let result;
     
     switch(action) {
       case 'createGame':
-        result = createGame(e.parameter.hostName);
+        result = createGame(params.hostName, params.roleConfig);
         break;
       case 'joinGame':
-        result = joinGame(e.parameter.gameCode, e.parameter.playerName);
+        result = joinGame(params.gameCode, params.playerName);
         break;
       case 'getPlayers':
-        result = getPlayers(e.parameter.gameCode);
+        result = getPlayers(params.gameCode);
         break;
       case 'dealRoles':
-        result = dealRoles(e.parameter.gameCode, e.parameter.playerId);
+        result = dealRoles(params.gameCode, params.playerId);
         break;
       case 'getMyRole':
-        result = getMyRole(e.parameter.gameCode, e.parameter.playerId);
+        result = getMyRole(params.gameCode, params.playerId);
         break;
       case 'checkGameStatus':
-        result = checkGameStatus(e.parameter.gameCode);
+        result = checkGameStatus(params.gameCode);
+        break;
+      case 'updateRoleConfig':
+        result = updateRoleConfig(params.gameCode, params.playerId, params.roleConfig);
+        break;
+      case 'getRoleConfig':
+        result = getRoleConfig(params.gameCode);
         break;
       default:
-        result = { success: false, error: 'Unknown action' };
+        result = { success: false, error: 'Unknown action: ' + action };
     }
     
     output.setContent(JSON.stringify(result));
@@ -86,9 +104,10 @@ function handleRequest(e) {
 /**
  * Create a new game
  * @param {string} hostName - Name of the host player
+ * @param {object} roleConfig - Optional role configuration
  * @returns {object} Game code and player ID
  */
-function createGame(hostName) {
+function createGame(hostName, roleConfig) {
   if (!hostName) {
     return { success: false, error: 'Host name is required' };
   }
@@ -103,6 +122,15 @@ function createGame(hostName) {
   const playerId = generatePlayerId();
   const timestamp = new Date().toISOString();
   
+  // Default role config: all roles, randomized
+  const defaultRoleConfig = {
+    mode: 'random', // 'random', 'specific', or 'count'
+    count: 6,       // number of special roles (when mode is 'count')
+    roles: ROLES    // specific roles to use
+  };
+  
+  const finalRoleConfig = roleConfig || defaultRoleConfig;
+  
   // Add game to Games sheet
   const gamesSheet = ss.getSheetByName(GAMES_SHEET);
   gamesSheet.appendRow([
@@ -110,7 +138,8 @@ function createGame(hostName) {
     playerId,  // hostId
     'waiting', // status: waiting, dealing, dealt
     timestamp,
-    ''         // roles dealt timestamp
+    '',        // roles dealt timestamp
+    JSON.stringify(finalRoleConfig) // role configuration
   ]);
   
   // Add host to Players sheet
@@ -129,12 +158,13 @@ function createGame(hostName) {
     success: true,
     gameCode: gameCode,
     playerId: playerId,
-    isHost: true
+    isHost: true,
+    roleConfig: finalRoleConfig
   };
 }
 
 /**
- * Join an existing game
+ * Join an existing game (NO PLAYER LIMIT)
  * @param {string} gameCode - The game code to join
  * @param {string} playerName - Name of the joining player
  * @returns {object} Player ID and game info
@@ -171,20 +201,7 @@ function joinGame(gameCode, playerName) {
     return { success: false, error: 'Game has already started' };
   }
   
-  // Check player count (max 10)
-  const playersData = playersSheet.getDataRange().getValues();
-  let playerCount = 0;
-  for (let i = 1; i < playersData.length; i++) {
-    if (playersData[i][0] === gameCode) {
-      playerCount++;
-    }
-  }
-  
-  if (playerCount >= 10) {
-    return { success: false, error: 'Game is full (max 10 players)' };
-  }
-  
-  // Add player
+  // Add player (NO LIMIT)
   const playerId = generatePlayerId();
   const timestamp = new Date().toISOString();
   
@@ -222,12 +239,19 @@ function getPlayers(gameCode) {
   const playersSheet = ss.getSheetByName(PLAYERS_SHEET);
   const gamesSheet = ss.getSheetByName(GAMES_SHEET);
   
-  // Get game status
+  // Get game status and role config
   const gamesData = gamesSheet.getDataRange().getValues();
   let gameStatus = 'waiting';
+  let roleConfig = null;
+  
   for (let i = 1; i < gamesData.length; i++) {
     if (gamesData[i][0] === gameCode) {
       gameStatus = gamesData[i][2];
+      try {
+        roleConfig = JSON.parse(gamesData[i][5] || '{}');
+      } catch (e) {
+        roleConfig = {};
+      }
       break;
     }
   }
@@ -250,8 +274,93 @@ function getPlayers(gameCode) {
     success: true,
     players: players,
     gameStatus: gameStatus,
-    rolesDealt: gameStatus === 'dealt'
+    rolesDealt: gameStatus === 'dealt',
+    roleConfig: roleConfig
   };
+}
+
+/**
+ * Update role configuration (host only)
+ * @param {string} gameCode - The game code
+ * @param {string} playerId - The requesting player's ID (must be host)
+ * @param {object} roleConfig - The new role configuration
+ * @returns {object} Success status
+ */
+function updateRoleConfig(gameCode, playerId, roleConfig) {
+  if (!gameCode || !playerId) {
+    return { success: false, error: 'Game code and player ID are required' };
+  }
+  
+  gameCode = gameCode.toUpperCase().trim();
+  
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const gamesSheet = ss.getSheetByName(GAMES_SHEET);
+  
+  // Verify requester is host
+  const gamesData = gamesSheet.getDataRange().getValues();
+  let gameRow = -1;
+  let hostId = '';
+  
+  for (let i = 1; i < gamesData.length; i++) {
+    if (gamesData[i][0] === gameCode) {
+      gameRow = i + 1;
+      hostId = gamesData[i][1];
+      break;
+    }
+  }
+  
+  if (gameRow === -1) {
+    return { success: false, error: 'Game not found' };
+  }
+  
+  if (hostId !== playerId) {
+    return { success: false, error: 'Only the host can update role configuration' };
+  }
+  
+  // Update role config (Column F)
+  gamesSheet.getRange(gameRow, 6).setValue(JSON.stringify(roleConfig));
+  
+  return {
+    success: true,
+    roleConfig: roleConfig
+  };
+}
+
+/**
+ * Get role configuration
+ * @param {string} gameCode - The game code
+ * @returns {object} Role configuration
+ */
+function getRoleConfig(gameCode) {
+  if (!gameCode) {
+    return { success: false, error: 'Game code is required' };
+  }
+  
+  gameCode = gameCode.toUpperCase().trim();
+  
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const gamesSheet = ss.getSheetByName(GAMES_SHEET);
+  
+  const gamesData = gamesSheet.getDataRange().getValues();
+  
+  for (let i = 1; i < gamesData.length; i++) {
+    if (gamesData[i][0] === gameCode) {
+      try {
+        const roleConfig = JSON.parse(gamesData[i][5] || '{}');
+        return {
+          success: true,
+          roleConfig: roleConfig
+        };
+      } catch (e) {
+        return {
+          success: true,
+          roleConfig: { mode: 'random', count: 6, roles: ROLES }
+        };
+      }
+    }
+  }
+  
+  return { success: false, error: 'Game not found' };
 }
 
 /**
@@ -271,15 +380,19 @@ function dealRoles(gameCode, playerId) {
   const gamesSheet = ss.getSheetByName(GAMES_SHEET);
   const playersSheet = ss.getSheetByName(PLAYERS_SHEET);
   
-  // Verify requester is host
+  // Verify requester is host and get role config
   const gamesData = gamesSheet.getDataRange().getValues();
   let gameRow = -1;
   let hostId = '';
+  let roleConfig = { mode: 'random', count: 6, roles: ROLES };
   
   for (let i = 1; i < gamesData.length; i++) {
     if (gamesData[i][0] === gameCode) {
       gameRow = i + 1;
       hostId = gamesData[i][1];
+      try {
+        roleConfig = JSON.parse(gamesData[i][5] || '{}');
+      } catch (e) {}
       break;
     }
   }
@@ -309,10 +422,25 @@ function dealRoles(gameCode, playerId) {
     return { success: false, error: 'Need at least 2 players to deal roles' };
   }
   
-  // Shuffle roles
-  const shuffledRoles = shuffleArray([...ROLES]);
+  // Determine which roles to use based on config
+  let rolesToDeal = [];
   
-  // Assign roles to players
+  if (roleConfig.mode === 'specific' && roleConfig.roles && roleConfig.roles.length > 0) {
+    // Use specific roles selected by host
+    rolesToDeal = [...roleConfig.roles];
+  } else if (roleConfig.mode === 'count' && roleConfig.count) {
+    // Random selection of N roles
+    const shuffledAllRoles = shuffleArray([...ROLES]);
+    rolesToDeal = shuffledAllRoles.slice(0, Math.min(roleConfig.count, ROLES.length));
+  } else {
+    // Default: all roles (random mode)
+    rolesToDeal = [...ROLES];
+  }
+  
+  // Shuffle the roles to deal
+  const shuffledRoles = shuffleArray(rolesToDeal);
+  
+  // Assign roles to players - extras get 'no_role'
   for (let i = 0; i < playerRows.length; i++) {
     const role = i < shuffledRoles.length ? shuffledRoles[i] : 'no_role';
     playersSheet.getRange(playerRows[i].row, 5).setValue(role); // Column E = role
@@ -326,7 +454,9 @@ function dealRoles(gameCode, playerId) {
   return {
     success: true,
     message: 'Roles dealt successfully',
-    playerCount: playerRows.length
+    playerCount: playerRows.length,
+    rolesDealt: Math.min(shuffledRoles.length, playerRows.length),
+    noRoleCount: Math.max(0, playerRows.length - shuffledRoles.length)
   };
 }
 
@@ -402,13 +532,13 @@ function checkGameStatus(gameCode) {
 // ==================== UTILITY FUNCTIONS ====================
 
 /**
- * Ensure required sheets exist
+ * Ensure required sheets exist (with roleConfig column)
  */
 function ensureSheetsExist(ss) {
   let gamesSheet = ss.getSheetByName(GAMES_SHEET);
   if (!gamesSheet) {
     gamesSheet = ss.insertSheet(GAMES_SHEET);
-    gamesSheet.appendRow(['gameCode', 'hostId', 'status', 'createdAt', 'rolesDealtAt']);
+    gamesSheet.appendRow(['gameCode', 'hostId', 'status', 'createdAt', 'rolesDealtAt', 'roleConfig']);
   }
   
   let playersSheet = ss.getSheetByName(PLAYERS_SHEET);
@@ -461,4 +591,5 @@ function testSetup() {
   const ss = SpreadsheetApp.openById(SHEET_ID);
   ensureSheetsExist(ss);
   Logger.log('Setup complete! Sheets created: ' + GAMES_SHEET + ', ' + PLAYERS_SHEET);
+  Logger.log('Available roles: ' + ROLES.join(', '));
 }
