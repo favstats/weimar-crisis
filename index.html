@@ -888,6 +888,33 @@
             background: var(--brown-light);
         }
 
+        .leave-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 14px;
+            background: transparent;
+            border: 2px solid rgba(235, 222, 199, 0.4);
+            color: rgba(235, 222, 199, 0.6);
+            font-size: 0.75rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            z-index: 1000;
+        }
+
+        .leave-btn:hover {
+            background: rgba(139, 69, 69, 0.8);
+            border-color: var(--cream);
+            color: var(--cream);
+        }
+
+        .leave-btn i {
+            margin-right: 5px;
+        }
+
         /* ============================================
            STATUS MESSAGES
            ============================================ */
@@ -1069,6 +1096,11 @@
 </head>
 <body>
 
+    <!-- Leave/Reset Button (always visible except on start screen) -->
+    <button class="leave-btn" id="leave-btn" style="display: none;" onclick="leaveGame()">
+        <i class="fas fa-sign-out-alt"></i> LEAVE
+    </button>
+
     <!-- ==================== START SCREEN ==================== -->
     <div id="start-screen" class="screen active">
         <div class="logo-container">
@@ -1180,21 +1212,15 @@
 
             <!-- Behavior Role Configuration (Host Only) -->
             <div class="role-config" id="behavior-config" style="display: none;">
-                <div class="role-config-title title-english">Behavior Roles <span class="role-hint">(how you should act)</span></div>
+                <div class="role-config-title title-english">Behavior Roles <span class="role-hint">(for players without power roles)</span></div>
                 <div class="role-config-mode">
                     <label class="role-mode-option">
-                        <input type="radio" name="behaviorMode" value="random" checked onchange="updateBehaviorMode()">
-                        <span>Random selection</span>
+                        <input type="radio" name="behaviorMode" value="none" onchange="updateBehaviorMode()">
+                        <span>None (no behavior roles)</span>
                     </label>
                     <label class="role-mode-option">
-                        <input type="radio" name="behaviorMode" value="count" onchange="updateBehaviorMode()">
-                        <span>Number of behaviors:</span>
-                        <select id="behavior-count-select" onchange="updateBehaviorCount()" disabled>
-                            <option value="0">0 (none)</option>
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="19" selected>All (19)</option>
-                        </select>
+                        <input type="radio" name="behaviorMode" value="random" checked onchange="updateBehaviorMode()">
+                        <span>Random (fill remaining players)</span>
                     </label>
                     <label class="role-mode-option">
                         <input type="radio" name="behaviorMode" value="specific" onchange="updateBehaviorMode()">
@@ -1205,7 +1231,7 @@
                     <!-- Behavior checkboxes will be generated -->
                 </div>
                 <div class="role-config-info" id="behavior-config-info">
-                    Each player also gets a random behavior role
+                    Remaining players get behavior roles
                 </div>
             </div>
 
@@ -1472,6 +1498,10 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             
+            // Show leave button on all screens except start screen
+            const leaveBtn = document.getElementById('leave-btn');
+            leaveBtn.style.display = (screenId === 'start-screen') ? 'none' : 'block';
+            
             if (screenId === 'name-screen') {
                 gameState.isHost = isCreating;
                 document.getElementById('player-name-input').focus();
@@ -1479,6 +1509,35 @@
             
             if (screenId === 'inspect-screen') {
                 populateInspectRoleList();
+            }
+        }
+
+        // ==================== LEAVE GAME ====================
+        function leaveGame() {
+            if (confirm('Leave the game and return to the start screen?')) {
+                // Clear stored game data
+                localStorage.removeItem('gameCode');
+                localStorage.removeItem('playerId');
+                localStorage.removeItem('playerName');
+                localStorage.removeItem('isHost');
+                
+                // Reset game state
+                gameState.gameCode = null;
+                gameState.playerId = null;
+                gameState.playerName = null;
+                gameState.isHost = false;
+                gameState.players = [];
+                gameState.myRole = null;
+                gameState.myBehaviorRole = null;
+                
+                // Stop polling
+                if (lobbyPollInterval) {
+                    clearInterval(lobbyPollInterval);
+                    lobbyPollInterval = null;
+                }
+                
+                // Go to start screen
+                showScreen('start-screen');
             }
         }
 
@@ -1842,11 +1901,15 @@
             const mode = document.querySelector('input[name="behaviorMode"]:checked').value;
             behaviorConfig.mode = mode;
             
-            const countSelect = document.getElementById('behavior-count-select');
             const checkboxes = document.getElementById('behavior-checkboxes');
-            
-            countSelect.disabled = (mode !== 'count');
             checkboxes.style.display = (mode === 'specific') ? 'flex' : 'none';
+            
+            // If "none" is selected, set count to 0
+            if (mode === 'none') {
+                behaviorConfig.count = 0;
+            } else {
+                behaviorConfig.count = ALL_BEHAVIOR_ROLES.length;
+            }
             
             updateBehaviorConfigInfo();
         }
@@ -1884,46 +1947,58 @@
         }
 
         function getSelectedBehaviorCount() {
-            if (behaviorConfig.mode === 'random') {
+            if (behaviorConfig.mode === 'none') {
+                return 0;
+            } else if (behaviorConfig.mode === 'random') {
                 return ALL_BEHAVIOR_ROLES.length;
-            } else if (behaviorConfig.mode === 'count') {
-                return behaviorConfig.count;
-            } else {
+            } else if (behaviorConfig.mode === 'specific') {
                 return behaviorConfig.behaviors.length;
+            } else {
+                return behaviorConfig.count;
             }
         }
 
         function updateRoleConfigInfo() {
             const info = document.getElementById('role-config-info');
             const playerCount = gameState.players.length;
-            const roleCount = getSelectedRoleCount();
-            const noRoleCount = Math.max(0, playerCount - roleCount);
+            let roleCount = getSelectedRoleCount();
+            
+            // Can't have more power roles than players
+            if (playerCount > 0) {
+                roleCount = Math.min(roleCount, playerCount);
+            }
             
             if (playerCount === 0) {
-                info.textContent = 'Extra players get "No Power Role"';
-            } else if (noRoleCount > 0) {
-                info.textContent = `${noRoleCount} player(s) get "No Power Role"`;
-            } else {
+                info.textContent = 'Waiting for players...';
+            } else if (roleCount === 0) {
+                info.textContent = 'No power roles will be assigned';
+            } else if (roleCount >= playerCount) {
                 info.textContent = `All ${playerCount} players get a power role`;
+            } else {
+                info.textContent = `${roleCount} player(s) get power roles`;
             }
+            
+            // Also update behavior info since it depends on power roles
+            updateBehaviorConfigInfo();
         }
 
         function updateBehaviorConfigInfo() {
             const info = document.getElementById('behavior-config-info');
             const playerCount = gameState.players.length;
+            const powerRoleCount = getSelectedRoleCount();
+            const remainingPlayers = Math.max(0, playerCount - powerRoleCount);
             const behaviorCount = getSelectedBehaviorCount();
             
-            if (behaviorCount === 0) {
-                info.textContent = 'No behavior roles will be assigned';
-            } else if (playerCount === 0) {
-                info.textContent = `${behaviorCount} behavior roles available`;
-            } else {
-                const noBehaviorCount = Math.max(0, playerCount - behaviorCount);
-                if (noBehaviorCount > 0) {
-                    info.textContent = `${noBehaviorCount} player(s) get "No Behavior"`;
+            if (behaviorConfig.mode === 'none') {
+                if (remainingPlayers > 0) {
+                    info.textContent = `${remainingPlayers} player(s) will get no special role`;
                 } else {
-                    info.textContent = `All players get a behavior role`;
+                    info.textContent = 'No behavior roles assigned';
                 }
+            } else if (remainingPlayers === 0) {
+                info.textContent = 'All players have power roles';
+            } else {
+                info.textContent = `${remainingPlayers} remaining player(s) get behavior roles`;
             }
         }
 

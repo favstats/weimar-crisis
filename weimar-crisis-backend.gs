@@ -455,16 +455,13 @@ function dealRoles(gameCode, playerId) {
   
   // Determine which BEHAVIOR roles to use
   let behaviorsToAssign = [];
-  if (behaviorConfig.mode === 'specific' && behaviorConfig.behaviors && behaviorConfig.behaviors.length > 0) {
+  if (behaviorConfig.mode === 'none') {
+    // No behavior roles at all
+    behaviorsToAssign = [];
+  } else if (behaviorConfig.mode === 'specific' && behaviorConfig.behaviors && behaviorConfig.behaviors.length > 0) {
     behaviorsToAssign = [...behaviorConfig.behaviors];
-  } else if (behaviorConfig.mode === 'count' && behaviorConfig.count !== undefined) {
-    if (behaviorConfig.count === 0) {
-      behaviorsToAssign = [];
-    } else {
-      const shuffledAllBehaviors = shuffleArray([...BEHAVIORS]);
-      behaviorsToAssign = shuffledAllBehaviors.slice(0, Math.min(behaviorConfig.count, BEHAVIORS.length));
-    }
   } else {
+    // 'random' mode - use all behaviors (will be shuffled and assigned to remaining players)
     behaviorsToAssign = [...BEHAVIORS];
   }
   
