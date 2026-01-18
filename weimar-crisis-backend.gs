@@ -14,7 +14,7 @@
  */
 
 // ==================== CONFIGURATION ====================
-const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE'; // Replace with your Google Sheet ID
+const SHEET_ID = '1CTf-b4PfVXaruKkxUbn5TyonX7fCGCVaN6LfaQ27yqA'; // Your Google Sheet ID
 const GAMES_SHEET = 'Games';
 const PLAYERS_SHEET = 'Players';
 
