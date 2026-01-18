@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=UnifrakturCook:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -126,9 +127,11 @@
         }
 
         .logo-subtitle {
-            font-size: 1.8rem;
-            color: var(--brown);
-            opacity: 0.8;
+            font-family: 'UnifrakturCook', cursive;
+            font-size: 1.6rem;
+            color: var(--cream);
+            opacity: 0.7;
+            margin-top: 4px;
         }
 
         .start-buttons {
@@ -250,11 +253,10 @@
             width: 32px;
             height: 32px;
             flex-shrink: 0;
-        }
-
-        .inspect-role-icon svg {
-            width: 100%;
-            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
         }
 
         .join-input-group {
@@ -698,16 +700,12 @@
         .role-icon {
             width: 48px;
             height: 48px;
-            margin: 0 auto 8px;
+            margin: 0 auto 12px;
             color: var(--brown);
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .role-icon svg {
-            width: 100%;
-            height: 100%;
+            font-size: 2rem;
         }
 
         .role-icon svg {
@@ -970,22 +968,26 @@
             border-color: var(--blue);
         }
 
-        .behavior-card .role-header {
-            border-bottom-color: var(--blue);
+        .behavior-power {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px 16px;
         }
 
         .behavior-desc {
-            font-size: 1.1rem;
-            line-height: 1.5;
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: var(--brown);
         }
 
         .behavior-reminder {
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--tan);
+            margin-top: 24px;
             font-size: 0.85rem;
             color: var(--brown-light);
-            text-align: center;
+            font-style: italic;
         }
 
         /* Inspect Section Title */
@@ -1045,7 +1047,8 @@
                     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l5 2.18V11H7V7.18L12 5z"/>
                 </svg>
             </div>
-            <h1 class="logo-title logo-fraktur">WEIMAR CRISIS</h1>
+            <h1 class="logo-title title-english">WEIMAR CRISIS</h1>
+            <h2 class="logo-subtitle title-german">Kriſe in Weimar</h2>
         </div>
         <div class="start-buttons">
             <button class="btn btn-primary" onclick="showScreen('name-screen', true)">Create New Game</button>
@@ -1106,7 +1109,7 @@
 
             <!-- Power Role Configuration (Host Only) -->
             <div class="role-config" id="role-config" style="display: none;">
-                <div class="role-config-title title-english">⚡ Power Roles</div>
+                <div class="role-config-title title-english">Power Roles</div>
                 <div class="role-config-mode">
                     <label class="role-mode-option">
                         <input type="radio" name="roleMode" value="random" checked onchange="updateRoleMode()">
@@ -1140,7 +1143,7 @@
 
             <!-- Behavior Role Configuration (Host Only) -->
             <div class="role-config" id="behavior-config" style="display: none;">
-                <div class="role-config-title title-english">🎭 Behavior Roles</div>
+                <div class="role-config-title title-english">Behavior Roles</div>
                 <div class="role-config-mode">
                     <label class="role-mode-option">
                         <input type="radio" name="behaviorMode" value="random" checked onchange="updateBehaviorMode()">
@@ -1210,8 +1213,8 @@
         <button class="back-btn" onclick="hideRole()">←</button>
         <div class="role-screen-content">
             <div class="role-nav-tabs" id="role-nav-tabs">
-                <button class="role-nav-tab active" id="power-tab" onclick="showPowerRole()">⚡ Power</button>
-                <button class="role-nav-tab" id="behavior-tab" onclick="showBehaviorRole()">🎭 Behavior</button>
+                <button class="role-nav-tab active" id="power-tab" onclick="showPowerRole()">Power</button>
+                <button class="role-nav-tab" id="behavior-tab" onclick="showBehaviorRole()">Behavior</button>
             </div>
             <div class="role-card-container" id="role-card-container">
                 <!-- Role card will be inserted here -->
@@ -1228,85 +1231,58 @@
             'police_chief': {
                 title: 'Police Chief',
                 subtitle: 'Polizeipräſident',
-                powerLabel: 'One-Time Power',
                 powerName: 'Arrest',
-                powerNameGerman: 'Verhaftung',
-                powerDesc: 'During any discussion, arrest one player. They cannot serve as President or Chancellor until pardoned by a sitting President.',
+                powerDesc: 'Once per game, during any discussion, arrest one player. They cannot serve as President or Chancellor until pardoned by a sitting President.',
                 powerNote: 'Arrested players may still vote and speak.',
-                quote: '"I even hate the revolution like sin."',
-                quoteAttr: '— Friedrich Ebert, November 1918',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 3l6 2.6v5.4h-4v-3H10v3H6V8.6l6-2.6z"/></svg>`
+                icon: `<i class="fas fa-handcuffs"></i>`
             },
             'assassin': {
                 title: 'The Assassin',
                 subtitle: 'Der Attentäter',
-                powerLabel: 'One-Time Power',
                 powerName: 'Assassinate',
-                powerNameGerman: 'Attentat',
-                powerDesc: 'During any discussion, eliminate one player from the game permanently.',
+                powerDesc: 'Once per game, during any discussion, eliminate one player from the game permanently.',
                 powerNote: 'Cannot use while arrested. Killing Hitler = Liberal victory.',
-                quote: '"Soldiers are murderers."',
-                quoteAttr: '— Kurt Tucholsky, 1931',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="6" x2="12" y2="12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>`
+                icon: `<i class="fas fa-crosshairs"></i>`
             },
             'journalist': {
                 title: 'The Journalist',
                 subtitle: 'Der Reporter',
-                powerLabel: 'One-Time Power',
                 powerName: 'Exposé',
-                powerNameGerman: 'Enthüllung',
-                powerDesc: 'After a legislative session, force the President or Chancellor to truthfully reveal one policy they discarded.',
+                powerDesc: 'Once per game, after a legislative session, force the President or Chancellor to truthfully reveal one policy they discarded.',
                 powerNote: null,
-                quote: '"Language is a weapon. Keep it sharp."',
-                quoteAttr: '— Kurt Tucholsky',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="6" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="14.5" y1="14.5" x2="20" y2="20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`
+                icon: `<i class="fas fa-newspaper"></i>`
             },
             'industrialist': {
                 title: 'The Industrialist',
                 subtitle: 'Der Großinduſtrielle',
-                powerLabel: 'One-Time Power',
                 powerName: 'Fund',
-                powerNameGerman: 'Finanzierung',
-                powerDesc: 'During voting, fund the proposed government. The election passes automatically regardless of votes.',
+                powerDesc: 'Once per game, during voting, fund the proposed government. The election passes automatically regardless of votes.',
                 powerNote: null,
-                quote: '"I Paid Hitler."',
-                quoteAttr: '— Fritz Thyssen, memoir title, 1941',
-                icon: `<svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 8l8-5 8 5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="12" x2="8" y2="17" stroke="currentColor" stroke-width="2"/><line x1="12" y1="12" x2="12" y2="17" stroke="currentColor" stroke-width="2"/><line x1="16" y1="12" x2="16" y2="17" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-landmark"></i>`
             },
             'union_organizer': {
                 title: 'Union Organizer',
                 subtitle: 'Der Gewerkſchaftsführer',
-                powerLabel: 'One-Time Power',
                 powerName: 'General Strike',
-                powerNameGerman: 'Generalſtreik',
-                powerDesc: 'During voting, call a general strike. The election fails automatically regardless of votes.',
+                powerDesc: 'Once per game, during voting, call a general strike. The election fails automatically regardless of votes.',
                 powerNote: null,
-                quote: '"Workers! Go on strike! Shut down the economy!"',
-                quoteAttr: '— Anti-Kapp putsch leaflet, 1920',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/><line x1="12" y1="4" x2="12" y2="7" stroke="currentColor" stroke-width="2"/><line x1="12" y1="17" x2="12" y2="20" stroke="currentColor" stroke-width="2"/><line x1="4" y1="12" x2="7" y2="12" stroke="currentColor" stroke-width="2"/><line x1="17" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-fist-raised"></i>`
             },
             'constitutional_judge': {
                 title: 'Constitutional Judge',
                 subtitle: 'Der Verfaſſungsrichter',
-                powerLabel: 'One-Time Power',
                 powerName: 'Judicial Review',
-                powerNameGerman: 'Normenkontrolle',
-                powerDesc: 'Block any executive power (Investigation, Special Election, or Execution) as it is used. That power is lost.',
+                powerDesc: 'Once per game, block any executive power (Investigation, Special Election, or Execution) as it is used. That power is lost.',
                 powerNote: null,
-                quote: '"No Enabling Act gives you the power to destroy ideas that are eternal."',
-                quoteAttr: '— Otto Wels, SPD, March 1933',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 2L4 6v5c0 5.25 3.4 10.2 8 11.6 4.6-1.4 8-6.35 8-11.6V6l-8-4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v10M8 11h8" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-gavel"></i>`
             },
             'no_role': {
                 title: 'No Expansion Role',
                 subtitle: 'Keine Erweiterungsrolle',
-                powerLabel: null,
                 powerName: null,
                 powerDesc: 'You have no expansion role this game. Play with your standard Secret Hitler role only.',
                 powerNote: null,
-                quote: null,
-                quoteAttr: null,
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-ban"></i>`
             }
         };
 
@@ -1316,121 +1292,121 @@
                 title: 'The Feminist',
                 subtitle: 'Die Feministin',
                 behavior: 'You are distrustful of men in positions of power.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13v8M9 18h6" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-venus"></i>`
             },
             'misogynist': {
                 title: 'The Misogynist',
                 subtitle: 'Der Frauenfeind',
                 behavior: 'You are distrustful of women in positions of power.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 5l3-3M20 5V2h-3" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-mars"></i>`
             },
             'aristocrat': {
                 title: 'The Aristocrat',
                 subtitle: 'Der Ariſtokrat',
                 behavior: 'You distrust common workers and prefer refined, educated types.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-gem"></i>`
             },
             'proletarian': {
                 title: 'The Proletarian',
                 subtitle: 'Der Proletarier',
                 behavior: 'You distrust the wealthy and elite classes.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="3" fill="currentColor"/><path d="M6 22v-6a6 6 0 0112 0v6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 12l-4 4M16 12l4 4" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-hammer"></i>`
             },
             'pacifist': {
                 title: 'The Pacifist',
                 subtitle: 'Der Paziſist',
                 behavior: 'You distrust anyone who speaks of violence or military force.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v20M12 12l-7 7M12 12l7 7" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-dove"></i>`
             },
             'militarist': {
                 title: 'The Militarist',
                 subtitle: 'Der Militariſt',
                 behavior: 'You distrust anyone who seems weak, indecisive, or cowardly.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 2v8l4 2v10H8V12l4-2V2z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="5" r="2" fill="currentColor"/></svg>`
+                icon: `<i class="fas fa-shield-halved"></i>`
             },
             'monarchist': {
                 title: 'The Monarchist',
                 subtitle: 'Der Monarchiſt',
                 behavior: 'You secretly miss the Kaiser and distrust republicans and democrats.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M5 20l2-8 5 4 5-4 2 8H5zM12 4l-3 4h6l-3-4z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-crown"></i>`
             },
             'revolutionary': {
                 title: 'The Revolutionary',
                 subtitle: 'Der Revolutionär',
                 behavior: 'You distrust moderates and anyone who resists radical change.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 2v6M12 8l8 4-8 4-8-4 8-4zM12 16v6" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="8" r="2" fill="currentColor"/></svg>`
+                icon: `<i class="fas fa-fire"></i>`
             },
             'prussian': {
                 title: 'The Prussian',
                 subtitle: 'Der Preuße',
                 behavior: 'You value discipline and order. You distrust those who lack it.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3 9-8 10-5-1-8-5-8-10V6l8-4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-chess-rook"></i>`
             },
             'bavarian': {
                 title: 'The Bavarian',
                 subtitle: 'Der Bayer',
                 behavior: 'You distrust centralized Berlin authority and Prussian influence.',
-                icon: `<svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 8c0-3 3.6-6 8-6s8 3 8 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-beer-mug-empty"></i>`
             },
             'devout': {
                 title: 'The Devout',
                 subtitle: 'Der Fromme',
                 behavior: 'You distrust atheists, secularists, and the morally loose.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 2v20M7 7h10" stroke="currentColor" stroke-width="2.5"/></svg>`
+                icon: `<i class="fas fa-cross"></i>`
             },
             'atheist': {
                 title: 'The Atheist',
                 subtitle: 'Der Atheiſt',
                 behavior: 'You distrust the overtly religious and those who invoke God.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-atom"></i>`
             },
             'academic': {
                 title: 'The Academic',
                 subtitle: 'Der Akademiker',
                 behavior: 'You distrust the uneducated and those who rely on emotion over reason.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 3L2 9l10 6 10-6-10-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 11v6c0 2 3 4 6 4s6-2 6-4v-6" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-graduation-cap"></i>`
             },
             'worker': {
                 title: 'The Worker',
                 subtitle: 'Der Arbeiter',
                 behavior: 'You distrust intellectuals, academics, and elites who never labored.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M14 6l-3.5 3.5L7 6M7 18l3.5-3.5L14 18" stroke="currentColor" stroke-width="2.5" fill="none"/><circle cx="17" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-wrench"></i>`
             },
             'veteran': {
                 title: 'The Veteran',
                 subtitle: 'Der Veteran',
                 behavior: 'You only truly trust fellow soldiers who served in the war.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 2l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1 2-4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 15v7M16 15v7M12 17v5" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-medal"></i>`
             },
             'paranoid': {
                 title: 'The Paranoid',
                 subtitle: 'Der Paranoide',
                 behavior: 'You trust absolutely no one. Everyone has hidden agendas.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M8 16c0-2 2-3 4-3s4 1 4 3" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-eye"></i>`
             },
             'optimist': {
                 title: 'The Optimist',
                 subtitle: 'Der Optimiſt',
                 behavior: 'You always give people the benefit of the doubt. Perhaps too trusting.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M8 14c0 2 2 4 4 4s4-2 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-sun"></i>`
             },
             'cynic': {
                 title: 'The Cynic',
                 subtitle: 'Der Zyniker',
                 behavior: 'You assume everyone has ulterior motives and acts from self-interest.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M8 17l8-3" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-cloud"></i>`
             },
             'hothead': {
                 title: 'The Hothead',
                 subtitle: 'Der Hitzkopf',
                 behavior: 'You make decisions based on emotion and instinct, not logic.',
-                icon: `<svg viewBox="0 0 24 24"><path d="M12 2c-3 0-5 2-5 5 0 2 1 3 1 5 0 1-1 2-1 3 0 3 2 5 5 5s5-2 5-5c0-1-1-2-1-3 0-2 1-3 1-5 0-3-2-5-5-5z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l2 2 2-2" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-bolt"></i>`
             },
             'no_behavior': {
                 title: 'No Behavior Role',
                 subtitle: 'Keine Verhaltensrolle',
                 behavior: 'You have no assigned behavior. Play as yourself.',
-                icon: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/></svg>`
+                icon: `<i class="fas fa-ban"></i>`
             }
         };
 
@@ -1493,7 +1469,7 @@
             const powerRoleIds = [...ALL_SPECIAL_ROLES, 'no_role'];
             const behaviorRoleIds = [...ALL_BEHAVIOR_ROLES, 'no_behavior'];
             
-            let html = '<div class="inspect-section-title">⚡ Power Roles</div>';
+            let html = '<div class="inspect-section-title">Power Roles</div>';
             html += powerRoleIds.map(roleId => {
                 const role = ROLES[roleId];
                 return `
@@ -1504,7 +1480,7 @@
                 `;
             }).join('');
             
-            html += '<div class="inspect-section-title" style="margin-top: 20px;">🎭 Behavior Roles</div>';
+            html += '<div class="inspect-section-title" style="margin-top: 20px;">Behavior Roles</div>';
             html += behaviorRoleIds.map(behaviorId => {
                 const behavior = BEHAVIOR_ROLES[behaviorId];
                 return `
@@ -1945,10 +1921,7 @@
                             <div class="role-subtitle title-german">${role.subtitle}</div>
                         </div>
                         <div class="role-power">
-                            <div class="power-name-row">
-                                ${role.powerName ? `<div class="power-name title-english">${role.powerName}</div>` : ''}
-                                ${role.powerLabel ? `<span class="once-badge">ONCE</span>` : ''}
-                            </div>
+                            ${role.powerName ? `<div class="power-name title-english">${role.powerName}</div>` : ''}
                             <div class="power-desc">${role.powerDesc}</div>
                             ${role.powerNote ? `<div class="power-note">${role.powerNote}</div>` : ''}
                         </div>
@@ -1983,12 +1956,9 @@
                             <div class="role-title title-english">${behavior.title}</div>
                             <div class="role-subtitle title-german">${behavior.subtitle}</div>
                         </div>
-                        <div class="role-power">
-                            <div class="power-label title-english">Your Behavior</div>
+                        <div class="role-power behavior-power">
                             <div class="power-desc behavior-desc">${behavior.behavior}</div>
-                        </div>
-                        <div class="behavior-reminder">
-                            <em>Play this way throughout the game</em>
+                            <div class="behavior-reminder">Play this way throughout the game</div>
                         </div>
                     </div>
                 </div>
