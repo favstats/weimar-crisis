@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=UnifrakturCook:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1129,9 +1130,168 @@
         .role-nav-tab:hover {
             opacity: 1;
         }
+
+        /* ============================================
+           COUNTDOWN OVERLAY (#6)
+           ============================================ */
+        .countdown-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(44, 36, 22, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .countdown-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .countdown-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 12rem;
+            color: var(--cream);
+            text-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+        }
+        .countdown-number.pop {
+            animation: countdownPop 0.8s ease-out;
+        }
+        @keyframes countdownPop {
+            0% { transform: scale(2); opacity: 0; }
+            50% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ============================================
+           CARD FLIP ANIMATION (#7)
+           ============================================ */
+        .reveal-card.flipping {
+            animation: cardFlip 0.8s ease-in-out;
+            transform-style: preserve-3d;
+        }
+        @keyframes cardFlip {
+            0% { transform: rotateY(0deg) scale(1); }
+            50% { transform: rotateY(90deg) scale(0.95); }
+            100% { transform: rotateY(0deg) scale(1); }
+        }
+
+        /* ============================================
+           OFFLINE BANNER (#10)
+           ============================================ */
+        .offline-banner {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: var(--fascist-red);
+            color: white;
+            text-align: center;
+            padding: 8px 16px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            z-index: 1000;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+        .offline-banner.visible {
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           PLAYER AVATARS (#5)
+           ============================================ */
+        .player-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           QR CODE (#4)
+           ============================================ */
+        .qr-section {
+            margin: 12px auto;
+            text-align: center;
+        }
+        .qr-section canvas,
+        .qr-section img {
+            border: 3px solid var(--brown) !important;
+        }
+        .qr-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            color: var(--brown-light);
+            margin-top: 6px;
+        }
+
+        /* ============================================
+           PULL TO REFRESH (#12)
+           ============================================ */
+        .pull-indicator {
+            text-align: center;
+            padding: 0;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            color: var(--brown-light);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s, padding 0.2s;
+        }
+        .pull-indicator.visible {
+            max-height: 40px;
+            padding: 8px;
+        }
+        .pull-indicator.refreshing i {
+            animation: spin 1s linear infinite;
+        }
+
+        /* ============================================
+           ENHANCED TOASTS (#8)
+           ============================================ */
+        .status-message.show {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-message i {
+            font-size: 1rem;
+        }
+
+        /* ============================================
+           SWIPE HINT (#11)
+           ============================================ */
+        .swipe-hint {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: var(--cream);
+            opacity: 0.5;
+            text-align: center;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Offline Banner (#10) -->
+    <div class="offline-banner" id="offline-banner">
+        <i class="fas fa-wifi"></i> No connection
+    </div>
+
+    <!-- Countdown Overlay (#6) -->
+    <div class="countdown-overlay" id="countdown-overlay">
+        <div class="countdown-number" id="countdown-number">3</div>
+    </div>
 
     <!-- Leave/Reset Button (always visible except on start screen) -->
     <button class="leave-btn" id="leave-btn" style="display: none;" onclick="leaveGame()">
@@ -1196,7 +1356,18 @@
                 <div class="lobby-code-label title-english">Game Code</div>
                 <div class="lobby-code-value title-english" id="lobby-code-display">XXXX00</div>
             </div>
-            
+
+            <!-- QR Code (#4) -->
+            <div class="qr-section" id="qr-section" style="display: none;">
+                <div id="qr-code"></div>
+                <div class="qr-label">Scan to join</div>
+            </div>
+
+            <!-- Pull to refresh indicator (#12) -->
+            <div class="pull-indicator" id="pull-indicator">
+                <i class="fas fa-arrow-down"></i> Release to refresh
+            </div>
+
             <div class="lobby-players">
                 <div class="lobby-players-title title-english">
                     Players (<span id="player-count">0</span>)
@@ -1318,6 +1489,9 @@
             </div>
             <div class="role-card-container" id="role-card-container">
                 <!-- Role card will be inserted here -->
+            </div>
+            <div class="swipe-hint" id="swipe-hint" style="display: none;">
+                <i class="fas fa-hand-pointer"></i> Swipe left/right to switch tabs
             </div>
         </div>
     </div>
@@ -1512,22 +1686,32 @@
         const POLL_INTERVAL = 3000;
         let pollTimer = null;
 
-        // ==================== API HELPER ====================
+        // ==================== API HELPER (with auto-reconnect #9) ====================
         async function callAPI(action, params = {}) {
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify({ action, ...params })
-                });
-                return await response.json();
-            } catch (error) {
-                console.error('API Error:', error);
-                throw error;
+            const maxRetries = 3;
+            let lastError;
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'text/plain'
+                        },
+                        body: JSON.stringify({ action, ...params })
+                    });
+                    return await response.json();
+                } catch (error) {
+                    lastError = error;
+                    console.error(`API attempt ${attempt + 1} failed:`, error);
+                    if (attempt < maxRetries - 1) {
+                        const delay = Math.pow(2, attempt) * 1000;
+                        showStatus(`Reconnecting... (attempt ${attempt + 2})`, true);
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+                }
             }
+            throw lastError;
         }
 
         // ==================== SCREEN NAVIGATION ====================
@@ -1702,6 +1886,7 @@
                 saveGameState();
                 updateLobbyDisplay();
                 showScreen('lobby-screen');
+                generateQRCode();  // #4
                 showStatus('Game created!');
                 startPolling();
                 
@@ -1751,10 +1936,13 @@
 
         async function dealRoles() {
             if (!gameState.isHost) return;
-            
+
             try {
+                // Show countdown (#6)
+                await showCountdown();
+
                 showStatus('Dealing roles...');
-                
+
                 // First update role config on server (both power and behavior)
                 await callAPI('updateRoleConfig', {
                     gameCode: gameState.gameCode,
@@ -1762,23 +1950,24 @@
                     roleConfig: roleConfig,
                     behaviorConfig: behaviorConfig
                 });
-                
+
                 // Then deal roles
                 const result = await callAPI('dealRoles', {
                     gameCode: gameState.gameCode,
                     playerId: gameState.playerId
                 });
-                
+
                 if (!result.success) {
                     throw new Error(result.error || 'Failed to deal roles');
                 }
-                
+
                 gameState.rolesDealt = true;
                 saveGameState();
-                
+
+                playChime(); // Sound effect (#1)
                 showScreen('reveal-screen');
                 showStatus('Roles dealt! Tap to reveal yours.');
-                
+
             } catch (error) {
                 showStatus('Failed to deal roles: ' + error.message, true);
                 console.error(error);
@@ -1787,35 +1976,46 @@
 
         async function revealRole() {
             try {
+                // Card flip animation (#7)
+                const revealCard = document.querySelector('.reveal-card');
+                revealCard.classList.add('flipping');
+                haptic(200); // Haptic feedback (#2)
+
                 // Fetch role from API
                 showStatus('Revealing role...');
                 const result = await callAPI('getMyRole', {
                     gameCode: gameState.gameCode,
                     playerId: gameState.playerId
                 });
-                
+
                 if (!result.success) {
+                    revealCard.classList.remove('flipping');
                     throw new Error(result.error || 'Failed to get role');
                 }
-                
+
                 gameState.myRole = result.role;
                 gameState.myBehavior = result.behavior || 'no_behavior';
                 gameState.revealStep = 1;
                 saveGameState();
-                
+
+                // Wait for flip midpoint then show role
+                await new Promise(r => setTimeout(r, 400));
+
+                playReveal(); // Sound effect (#1)
+                haptic(300); // Haptic feedback (#2)
+
                 // Hide the tabs - players get either power OR behavior, not both
                 document.getElementById('role-nav-tabs').style.display = 'none';
-                
+
                 // Show the appropriate role
                 if (gameState.myRole && gameState.myRole !== 'no_role') {
-                    // Player has a power role
                     displayRoleCard(gameState.myRole);
                 } else {
-                    // Player has a behavior role instead
                     displayBehaviorCard(gameState.myBehavior);
                 }
                 showScreen('role-screen');
-                
+                revealCard.classList.remove('flipping');
+
             } catch (error) {
                 showStatus('Failed to reveal role: ' + error.message, true);
                 console.error(error);
@@ -1871,7 +2071,7 @@
             const list = document.getElementById('player-list');
             list.innerHTML = gameState.players.map((p, i) => `
                 <li class="player-item">
-                    <span class="player-number">${i + 1}</span>
+                    <span class="player-avatar" style="background: ${AVATAR_COLORS[i % AVATAR_COLORS.length]}">${AVATAR_ICONS[i % AVATAR_ICONS.length]}</span>
                     <span class="player-name">${p.name}</span>
                     ${p.isHost ? '<span class="player-host">HOST</span>' : ''}
                 </li>
@@ -2152,8 +2352,21 @@
         }
 
         function copyGameCode() {
+            const btn = document.querySelector('.lobby-actions .btn-secondary');
             navigator.clipboard.writeText(gameState.gameCode).then(() => {
-                showStatus('Code copied!');
+                playClick(); // Sound effect (#1)
+                haptic(50); // Haptic (#2)
+                // Visual feedback on button (#3)
+                const original = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = 'var(--gold)';
+                btn.style.color = 'var(--brown)';
+                setTimeout(() => {
+                    btn.textContent = original;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 2000);
+                showStatus('Code copied to clipboard!');
             }).catch(() => {
                 showStatus('Failed to copy', true);
             });
@@ -2188,9 +2401,11 @@
 
         function showStatus(message, isError = false) {
             const el = document.getElementById('status-message');
-            el.textContent = message;
+            const icon = isError ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
+            el.innerHTML = icon + ' ' + message;
             el.className = 'status-message show' + (isError ? ' error' : '');
-            setTimeout(() => el.classList.remove('show'), 3000);
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => el.classList.remove('show'), 3000);
         }
 
         function saveGameState() {
@@ -2219,30 +2434,47 @@
             localStorage.removeItem('weimarCrisis');
         }
 
-        // Polling for player/game updates
+        // Track known players for join toast (#8)
+        let knownPlayerIds = new Set();
+
+        // Polling for player/game updates (with join toasts #8)
         function startPolling() {
             stopPolling(); // Clear any existing timer
-            
+            // Initialize known players
+            knownPlayerIds = new Set(gameState.players.map(p => p.id));
+
             pollTimer = setInterval(async () => {
                 try {
                     // Get latest player list
                     const playersResult = await callAPI('getPlayers', {
                         gameCode: gameState.gameCode
                     });
-                    
+
                     if (playersResult.success) {
+                        // Detect new players for toast (#8)
+                        playersResult.players.forEach(p => {
+                            if (!knownPlayerIds.has(p.id) && p.id !== gameState.playerId) {
+                                showStatus(`${p.name} joined!`);
+                                playClick();
+                                haptic(100);
+                            }
+                        });
+                        knownPlayerIds = new Set(playersResult.players.map(p => p.id));
+
                         gameState.players = playersResult.players;
-                        
+
                         // Check if roles were dealt
                         if (playersResult.rolesDealt && !gameState.rolesDealt) {
                             gameState.rolesDealt = true;
                             saveGameState();
                             stopPolling();
+                            playChime();
+                            haptic(300);
                             showScreen('reveal-screen');
                             showStatus('Roles have been dealt! Tap to reveal yours.');
                             return;
                         }
-                        
+
                         // Update lobby display if we're on that screen
                         if (document.getElementById('lobby-screen').classList.contains('active')) {
                             updateLobbyDisplay();
@@ -2261,8 +2493,256 @@
             }
         }
 
+        // ==================== PLAYER AVATARS (#5) ====================
+        const AVATAR_COLORS = [
+            '#C23B22', '#4A6FA5', '#C9A227', '#2C8C4A', '#8B5CF6',
+            '#D97706', '#0891B2', '#DC2626', '#7C3AED', '#059669',
+            '#EA580C', '#2563EB', '#CA8A04', '#16A34A', '#9333EA'
+        ];
+        const AVATAR_ICONS = [
+            '\u2694', '\uD83D\uDEE1', '\u26A1', '\uD83D\uDD25', '\uD83D\uDDE1',
+            '\uD83D\uDC41', '\uD83C\uDFAD', '\u2696', '\uD83E\uDD85', '\uD83D\uDC3A',
+            '\uD83C\uDFDB', '\u2B50', '\uD83D\uDC8E', '\uD83C\uDF19', '\u2600'
+        ];
+
+        // ==================== SOUND EFFECTS (#1) ====================
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            return audioCtx;
+        }
+
+        function playClick() {
+            try {
+                const ctx = getAudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 800;
+                gain.gain.value = 0.1;
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.1);
+            } catch(e) {}
+        }
+
+        function playChime() {
+            try {
+                const ctx = getAudioCtx();
+                [523, 659, 784].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = freq;
+                    osc.type = 'sine';
+                    gain.gain.value = 0.15;
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5 + i * 0.15);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + 0.5 + i * 0.15);
+                });
+            } catch(e) {}
+        }
+
+        function playReveal() {
+            try {
+                const ctx = getAudioCtx();
+                [392, 494, 587, 784].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = freq;
+                    osc.type = 'triangle';
+                    gain.gain.value = 0.12;
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8 + i * 0.1);
+                    osc.start(ctx.currentTime + i * 0.1);
+                    osc.stop(ctx.currentTime + 0.8 + i * 0.1);
+                });
+            } catch(e) {}
+        }
+
+        // ==================== HAPTIC FEEDBACK (#2) ====================
+        function haptic(ms = 200) {
+            try { navigator.vibrate && navigator.vibrate(ms); } catch(e) {}
+        }
+
+        // ==================== COUNTDOWN ANIMATION (#6) ====================
+        function showCountdown() {
+            return new Promise(resolve => {
+                const overlay = document.getElementById('countdown-overlay');
+                const num = document.getElementById('countdown-number');
+                overlay.classList.add('active');
+                let count = 3;
+                num.textContent = count;
+                num.classList.remove('pop');
+                void num.offsetHeight;
+                num.classList.add('pop');
+                playClick();
+
+                const interval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        num.textContent = count;
+                        num.classList.remove('pop');
+                        void num.offsetHeight;
+                        num.classList.add('pop');
+                        playClick();
+                        haptic(50);
+                    } else {
+                        clearInterval(interval);
+                        overlay.classList.remove('active');
+                        resolve();
+                    }
+                }, 1000);
+            });
+        }
+
+        // ==================== QR CODE (#4) ====================
+        let qrInstance = null;
+        function generateQRCode() {
+            const container = document.getElementById('qr-code');
+            const section = document.getElementById('qr-section');
+            if (!gameState.gameCode || typeof QRCode === 'undefined') {
+                section.style.display = 'none';
+                return;
+            }
+            container.innerHTML = '';
+            const joinUrl = window.location.href.split('?')[0] + '?code=' + gameState.gameCode;
+            try {
+                qrInstance = new QRCode(container, {
+                    text: joinUrl,
+                    width: 120,
+                    height: 120,
+                    colorDark: '#2C2416',
+                    colorLight: '#D4C5A9'
+                });
+                section.style.display = 'block';
+            } catch(e) {
+                section.style.display = 'none';
+            }
+        }
+
+        // ==================== OFFLINE DETECTION (#10) ====================
+        function setupOfflineDetection() {
+            const banner = document.getElementById('offline-banner');
+            window.addEventListener('online', () => {
+                banner.classList.remove('visible');
+                showStatus('Back online');
+            });
+            window.addEventListener('offline', () => {
+                banner.classList.add('visible');
+            });
+            if (!navigator.onLine) {
+                banner.classList.add('visible');
+            }
+        }
+
+        // ==================== SWIPE NAVIGATION (#11) ====================
+        function setupSwipeNavigation() {
+            const roleScreen = document.getElementById('role-screen');
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            roleScreen.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+
+            roleScreen.addEventListener('touchend', (e) => {
+                const dx = touchStartX - e.changedTouches[0].screenX;
+                const dy = touchStartY - e.changedTouches[0].screenY;
+                // Only trigger if horizontal swipe is dominant and > 60px
+                if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                    // Only swipe when tabs are visible (both power + behavior)
+                    if (document.getElementById('role-nav-tabs').style.display !== 'none') {
+                        if (dx > 0) {
+                            showBehaviorRole();
+                        } else {
+                            showPowerRole();
+                        }
+                        haptic(30);
+                    }
+                }
+            }, { passive: true });
+        }
+
+        // ==================== PULL TO REFRESH (#12) ====================
+        function setupPullToRefresh() {
+            const lobby = document.getElementById('lobby-screen');
+            const indicator = document.getElementById('pull-indicator');
+            let startY = 0;
+            let pulling = false;
+
+            lobby.addEventListener('touchstart', (e) => {
+                if (lobby.scrollTop <= 0) {
+                    startY = e.touches[0].pageY;
+                    pulling = true;
+                }
+            }, { passive: true });
+
+            lobby.addEventListener('touchmove', (e) => {
+                if (!pulling) return;
+                const diff = e.touches[0].pageY - startY;
+                if (diff > 50 && diff < 150) {
+                    indicator.classList.add('visible');
+                    indicator.innerHTML = '<i class="fas fa-arrow-down"></i> Release to refresh';
+                } else if (diff <= 10) {
+                    indicator.classList.remove('visible');
+                }
+            }, { passive: true });
+
+            lobby.addEventListener('touchend', async () => {
+                if (!pulling) return;
+                pulling = false;
+                if (indicator.classList.contains('visible')) {
+                    indicator.innerHTML = '<i class="fas fa-spinner"></i> Refreshing...';
+                    indicator.classList.add('refreshing');
+                    try {
+                        const result = await callAPI('getPlayers', { gameCode: gameState.gameCode });
+                        if (result.success) {
+                            gameState.players = result.players;
+                            updateLobbyDisplay();
+                            showStatus('Player list refreshed');
+                        }
+                    } catch(e) {
+                        showStatus('Refresh failed', true);
+                    }
+                    indicator.classList.remove('visible', 'refreshing');
+                }
+            }, { passive: true });
+        }
+
+        // ==================== BUTTON CLICK SOUNDS (#1) ====================
+        function setupButtonSounds() {
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playClick();
+                    haptic(30);
+                });
+            });
+        }
+
         // ==================== INIT ====================
         function init() {
+            // Setup new features
+            setupOfflineDetection();  // #10
+            setupSwipeNavigation();   // #11
+            setupPullToRefresh();     // #12
+            setupButtonSounds();      // #1
+
+            // Check for game code in URL params (#4 - QR join support)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlCode = urlParams.get('code');
+            if (urlCode) {
+                document.getElementById('join-code-input').value = urlCode.toUpperCase();
+                // Clean URL without reloading
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+
             // Check for saved game state
             if (loadGameState() && gameState.gameCode) {
                 if (gameState.rolesDealt && gameState.myRole) {
@@ -2270,11 +2750,14 @@
                 } else if (gameState.isHost) {
                     updateLobbyDisplay();
                     showScreen('lobby-screen');
+                    generateQRCode();  // #4
+                    startPolling();
                 } else {
                     showScreen('waiting-screen');
+                    startPolling();
                 }
             }
-            
+
             // Handle Enter key on inputs
             document.getElementById('join-code-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') joinWithCode();
