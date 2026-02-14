@@ -450,7 +450,9 @@
 
         .player-name {
             flex: 1;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
         }
 
         .player-host {
@@ -463,10 +465,11 @@
         }
 
         .lobby-status {
-            font-size: 0.9rem;
+            font-size: 1rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.08em;
             color: var(--brown-light);
             margin: 16px 0;
-            font-style: italic;
         }
 
         .lobby-actions {
@@ -506,7 +509,9 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
             color: var(--brown);
         }
 
@@ -515,12 +520,14 @@
         }
 
         .role-mode-option select {
-            padding: 4px 8px;
-            font-size: 0.9rem;
-            border: 1px solid var(--brown-light);
+            padding: 6px 10px;
+            font-size: 1rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
+            border: 2px solid var(--brown-light);
             background: var(--cream);
             color: var(--brown);
-            font-family: inherit;
+            border-radius: 2px;
         }
 
         .role-checkboxes {
@@ -536,12 +543,14 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            padding: 4px 10px;
+            padding: 6px 12px;
             background: var(--cream);
-            border: 1px solid var(--brown-light);
+            border: 2px solid var(--brown-light);
             border-radius: 3px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
             transition: all 0.2s;
         }
 
@@ -556,10 +565,12 @@
         }
 
         .role-config-info {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
             color: var(--brown-light);
             margin-top: 12px;
-            font-style: italic;
+            text-align: center;
         }
 
         .role-hint {
@@ -2507,9 +2518,21 @@
             '#EA580C', '#2563EB', '#CA8A04', '#16A34A', '#9333EA'
         ];
         const AVATAR_ICONS = [
-            '\u2694', '\uD83D\uDEE1', '\u26A1', '\uD83D\uDD25', '\uD83D\uDDE1',
-            '\uD83D\uDC41', '\uD83C\uDFAD', '\u2696', '\uD83E\uDD85', '\uD83D\uDC3A',
-            '\uD83C\uDFDB', '\u2B50', '\uD83D\uDC8E', '\uD83C\uDF19', '\u2600'
+            '<i class="fas fa-shield-halved"></i>',
+            '<i class="fas fa-bolt"></i>',
+            '<i class="fas fa-fire"></i>',
+            '<i class="fas fa-crown"></i>',
+            '<i class="fas fa-star"></i>',
+            '<i class="fas fa-chess-rook"></i>',
+            '<i class="fas fa-feather-pointed"></i>',
+            '<i class="fas fa-skull"></i>',
+            '<i class="fas fa-dove"></i>',
+            '<i class="fas fa-gem"></i>',
+            '<i class="fas fa-landmark"></i>',
+            '<i class="fas fa-sun"></i>',
+            '<i class="fas fa-moon"></i>',
+            '<i class="fas fa-medal"></i>',
+            '<i class="fas fa-cross"></i>'
         ];
 
         // ==================== SOUND EFFECTS (#1) ====================
