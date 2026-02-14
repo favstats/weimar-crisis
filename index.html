@@ -205,7 +205,7 @@
 
         .inspect-container {
             width: 100%;
-            max-width: 400px;
+            max-width: 1400px;
             padding: 20px;
         }
 
@@ -222,6 +222,25 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+        }
+
+        .inspect-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+            width: 100%;
+        }
+
+        .inspect-card-grid .role-card,
+        .inspect-card-grid .behavior-card {
+            width: 100%;
+            min-height: 320px;
+        }
+
+        .inspect-card-grid .no-role-card {
+            width: 100%;
+            height: auto;
+            min-height: 280px;
         }
 
         .inspect-role-btn {
@@ -975,9 +994,27 @@
                 width: 280px;
                 height: 400px;
             }
+            .inspect-card-grid .role-card,
+            .inspect-card-grid .behavior-card,
+            .inspect-card-grid .no-role-card {
+                width: 100%;
+            }
             .role-title { font-size: 1.4rem; }
             .role-subtitle { font-size: 1.1rem; }
             .power-desc { font-size: 0.85rem; }
+        }
+
+        @media (max-width: 600px) {
+            .inspect-card-grid {
+                grid-template-columns: 1fr;
+            }
+            .inspect-card-grid .role-card,
+            .inspect-card-grid .behavior-card,
+            .inspect-card-grid .no-role-card {
+                width: 100%;
+                max-width: 320px;
+                margin: 0 auto;
+            }
         }
 
         /* ============================================
@@ -1542,29 +1579,74 @@
             const container = document.getElementById('inspect-role-list');
             const powerRoleIds = [...ALL_SPECIAL_ROLES, 'no_role'];
             const behaviorRoleIds = [...ALL_BEHAVIOR_ROLES, 'no_behavior'];
-            
-            let html = '<div class="inspect-section-title">Power Roles</div>';
-            html += powerRoleIds.map(roleId => {
+
+            function renderPowerCard(roleId) {
                 const role = ROLES[roleId];
+                if (!role) return '';
+                if (roleId === 'no_role') {
+                    return `
+                        <div class="no-role-card">
+                            <div class="no-role-icon">\u2205</div>
+                            <div class="no-role-text title-english">${role.title}</div>
+                            <div class="no-role-german title-german">${role.subtitle}</div>
+                            <div class="no-role-subtext">${role.powerDesc}</div>
+                        </div>`;
+                }
                 return `
-                    <button class="inspect-role-btn" onclick="inspectRole('${roleId}', 'power')">
-                        <span class="inspect-role-icon">${role.icon}</span>
-                        <span>${role.title}</span>
-                    </button>
-                `;
-            }).join('');
-            
-            html += '<div class="inspect-section-title" style="margin-top: 20px;">Behavior Roles</div>';
-            html += behaviorRoleIds.map(behaviorId => {
+                    <div class="role-card">
+                        <div class="role-card-inner">
+                            <div class="role-header">
+                                <div class="role-icon">${role.icon}</div>
+                                <div class="role-title title-english">${role.title}</div>
+                                <div class="role-subtitle title-german">${role.subtitle}</div>
+                            </div>
+                            <div class="role-power">
+                                ${role.powerName ? `<div class="power-name title-english">${role.powerName}</div>` : ''}
+                                <div class="power-desc">${role.powerDesc}</div>
+                                ${role.powerNote ? `<div class="power-note">${role.powerNote}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            function renderBehaviorCard(behaviorId) {
                 const behavior = BEHAVIOR_ROLES[behaviorId];
+                if (!behavior) return '';
+                if (behaviorId === 'no_behavior') {
+                    return `
+                        <div class="no-role-card">
+                            <div class="no-role-icon">\u2205</div>
+                            <div class="no-role-text title-english">${behavior.title}</div>
+                            <div class="no-role-german title-german">${behavior.subtitle}</div>
+                            <div class="no-role-subtext">${behavior.behavior}</div>
+                        </div>`;
+                }
                 return `
-                    <button class="inspect-role-btn" onclick="inspectRole('${behaviorId}', 'behavior')">
-                        <span class="inspect-role-icon">${behavior.icon}</span>
-                        <span>${behavior.title}</span>
-                    </button>
-                `;
-            }).join('');
-            
+                    <div class="role-card behavior-card">
+                        <div class="role-card-inner">
+                            <div class="role-header">
+                                <div class="role-icon">${behavior.icon}</div>
+                                <div class="role-title title-english">${behavior.title}</div>
+                                <div class="role-subtitle title-german">${behavior.subtitle}</div>
+                            </div>
+                            <div class="role-power behavior-power">
+                                <div class="power-desc behavior-desc">${behavior.behavior}</div>
+                                <div class="behavior-reminder">Play this way throughout the game</div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            let html = '<div class="inspect-section-title">Power Roles</div>';
+            html += '<div class="inspect-card-grid">';
+            html += powerRoleIds.map(renderPowerCard).join('');
+            html += '</div>';
+
+            html += '<div class="inspect-section-title" style="margin-top: 28px;">Behavior Roles</div>';
+            html += '<div class="inspect-card-grid">';
+            html += behaviorRoleIds.map(renderBehaviorCard).join('');
+            html += '</div>';
+
             container.innerHTML = html;
         }
 
