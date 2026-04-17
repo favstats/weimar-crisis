@@ -172,6 +172,9 @@ async function saveGame(code: string, state: any, status?: string) {
 function freshState(hostId: string, hostName: string) {
   const now = new Date().toISOString();
   return {
+    powerLog: [] as any[],
+    blockNextEnact: false,
+    vetoNextEnact: false,
     mode: "secrethitler",
     phase: "lobby",
     hostId,
@@ -312,6 +315,9 @@ async function shStartGame(p: any) {
   s.winner = null;
   s.winReason = null;
   s.phase = "nomination";
+  s.powerLog = [];
+  s.blockNextEnact = false;
+  s.vetoNextEnact = false;
   await saveGame(game.code, s, "active");
   return { success: true };
 }
@@ -325,7 +331,10 @@ async function shGetState(p: any) {
   const chan = s.nominatedChancellorId ? s.players.find((x: any) => x.id === s.nominatedChancellorId) : null;
   const pub: any = {
     phase: s.phase,
-    players: s.players.map((x: any) => ({ id: x.id, name: x.name, isHost: !!x.isHost, alive: !!x.alive })),
+    powerLog: s.powerLog || [],
+    blockNextEnact: !!s.blockNextEnact,
+    vetoNextEnact: !!s.vetoNextEnact,
+    players: s.players.map((x: any) => ({ id: x.id, name: x.name, isHost: !!x.isHost, alive: !!x.alive, powerRole: x.powerRole || null, powerUsed: !!x.powerUsed })),
     hostId: s.hostId,
     presidentId: pres ? pres.id : null,
     chancellorId: chan ? chan.id : null,
@@ -357,7 +366,9 @@ async function shGetState(p: any) {
       hasBeenInvestigated: !!me.hasBeenInvestigated,
       powerRole: s.phase === "lobby" ? null : (me.powerRole || null),
       behaviorRole: s.phase === "lobby" ? null : (me.behaviorRole || null),
+      powerUsed: !!me.powerUsed,
     };
+    if (me.privatePowerResult) priv.privatePowerResult = me.privatePowerResult;
     if (s.phase !== "lobby" && me.party === "fascist" && (me.role !== "hitler" || s.hitlerKnowsFascists)) {
       priv.fascistTeam = s.players
         .filter((x: any) => x.party === "fascist")
@@ -492,9 +503,101 @@ async function shChancellorEnact(p: any) {
   s.discardPile.push(s.chancellorPolicies[0]);
   s.chancellorPolicies = null;
   s.vetoProposed = false;
+  // Expansion power flags intercept the enactment
+  if (s.vetoNextEnact) {
+    s.discardPile.push(enacted);
+    s.vetoNextEnact = false;
+    s.powerLog = s.powerLog || [];
+    s.powerLog.push({ at: new Date().toISOString(), power: "constitutional_judge_fired", byName: "Constitutional Judge", publicResult: "Policy vetoed by judicial authority; tracker unchanged.", enacted: null });
+    advancePresident(s);
+    s.nominatedChancellorId = null;
+    s.phase = "nomination";
+    await saveGame(game.code, s);
+    return { success: true, vetoed: true };
+  }
+  if (s.blockNextEnact) {
+    s.discardPile.push(enacted);
+    s.blockNextEnact = false;
+    s.electionTracker++;
+    s.powerLog = s.powerLog || [];
+    s.powerLog.push({ at: new Date().toISOString(), power: "union_organizer_fired", byName: "Union Organizer", publicResult: "Strike! Policy discarded; election tracker advanced.", enacted: null });
+    if (s.electionTracker >= 3) {
+      if (s.policyDeck.length < 1) {
+        s.policyDeck = shuffle(s.policyDeck.concat(s.discardPile));
+        s.discardPile = [];
+      }
+      const top = s.policyDeck.splice(0, 1)[0];
+      if (top === "lib") s.liberalPolicies++; else s.fascistPolicies++;
+      s.electionTracker = 0;
+      s.lastElectedPresident = null;
+      s.lastElectedChancellor = null;
+      if (!checkWin(s)) {
+        advancePresident(s);
+        s.nominatedChancellorId = null;
+        s.phase = "nomination";
+      }
+    } else {
+      advancePresident(s);
+      s.nominatedChancellorId = null;
+      s.phase = "nomination";
+    }
+    await saveGame(game.code, s);
+    return { success: true, blocked: true };
+  }
   applyEnact(s, enacted, false);
   await saveGame(game.code, s);
   return { success: true, enacted };
+}
+
+async function shUseExpansionPower(p: any) {
+  const game = await loadGame(p.gameCode); if (!game) return { success: false, error: "Game not found" };
+  const s = game.state;
+  if (s.phase === "lobby" || s.phase === "gameOver") return { success: false, error: "Not during play" };
+  const me = s.players.find((x: any) => x.id === p.playerId);
+  if (!me) return { success: false, error: "Player not found" };
+  if (!me.alive) return { success: false, error: "Dead players cannot use powers" };
+  if (!me.powerRole) return { success: false, error: "You have no expansion power" };
+  if (me.powerUsed) return { success: false, error: "Already used your power" };
+  const power = me.powerRole;
+  const now = new Date().toISOString();
+  s.powerLog = s.powerLog || [];
+  let privateResult: any = null;
+  const needsTarget = ["police_chief", "assassin", "journalist", "industrialist"].indexOf(power) >= 0;
+  let target: any = null;
+  if (needsTarget) {
+    target = s.players.find((x: any) => x.id === p.targetId);
+    if (!target) return { success: false, error: "Target required" };
+    if (target.id === me.id) return { success: false, error: "Cannot target self" };
+    if (!target.alive) return { success: false, error: "Target must be alive" };
+  }
+  if (power === "police_chief") {
+    privateResult = { targetId: target.id, name: target.name, party: target.party };
+    s.powerLog.push({ at: now, power, by: me.id, byName: me.name, targetId: target.id, targetName: target.name, publicResult: me.name + " investigated " + target.name + " (result is secret)." });
+  } else if (power === "assassin") {
+    target.alive = false;
+    s.powerLog.push({ at: now, power, by: me.id, byName: me.name, targetId: target.id, targetName: target.name, publicResult: me.name + " ASSASSINATED " + target.name + "." });
+    if (checkWin(s)) {
+      me.powerUsed = true;
+      await saveGame(game.code, s);
+      return { success: true };
+    }
+  } else if (power === "journalist") {
+    s.powerLog.push({ at: now, power, by: me.id, byName: me.name, targetId: target.id, targetName: target.name, publicResult: me.name + " exposes " + target.name + " as " + (target.party === "liberal" ? "LIBERAL" : "FASCIST") + "." });
+  } else if (power === "industrialist") {
+    s.powerLog.push({ at: now, power, by: me.id, byName: me.name, targetId: target.id, targetName: target.name, publicResult: me.name + " bribed " + target.name + " (effect resolved socially)." });
+  } else if (power === "union_organizer") {
+    s.blockNextEnact = true;
+    s.powerLog.push({ at: now, power, by: me.id, byName: me.name, publicResult: me.name + " calls a STRIKE. The next policy enactment will be discarded and the election tracker will advance." });
+  } else if (power === "constitutional_judge") {
+    s.vetoNextEnact = true;
+    s.powerLog.push({ at: now, power, by: me.id, byName: me.name, publicResult: me.name + " raises a JUDICIAL VETO. The next policy enactment will be struck down with no tracker effect." });
+  } else {
+    return { success: false, error: "Unknown power" };
+  }
+  me.powerUsed = true;
+  if (privateResult) me.privatePowerResult = privateResult;
+  await saveGame(game.code, s);
+  return { success: true };
 }
 
 async function shProposeVeto(p: any) {
@@ -614,7 +717,10 @@ async function shResetGame(p: any) {
   const s = game.state;
   if (s.hostId !== p.playerId) return { success: false, error: "Only host can reset" };
   s.phase = "lobby";
-  s.players.forEach((x: any) => { x.role = null; x.party = null; x.alive = true; x.hasBeenInvestigated = false; x.powerRole = null; x.behaviorRole = null; });
+  s.players.forEach((x: any) => { x.role = null; x.party = null; x.alive = true; x.hasBeenInvestigated = false; x.powerRole = null; x.behaviorRole = null; x.powerUsed = false; x.privatePowerResult = null; });
+  s.powerLog = [];
+  s.blockNextEnact = false;
+  s.vetoNextEnact = false;
   s.policyDeck = [];
   s.discardPile = [];
   s.drawnPolicies = null;
@@ -662,6 +768,7 @@ Deno.serve(async (req) => {
       case "shRespondVeto": return json(await shRespondVeto(body));
       case "shUsePower": return json(await shUsePower(body));
       case "shAckPower": return json(await shAckPower(body));
+      case "shUseExpansionPower": return json(await shUseExpansionPower(body));
       case "shResetGame": return json(await shResetGame(body));
       default: return json({ success: false, error: "Unknown action: " + action }, 400);
     }

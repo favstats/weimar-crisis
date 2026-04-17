@@ -479,6 +479,125 @@
         }
         .sh-policy-card.dealt { animation: shCardDeal 0.4s cubic-bezier(.2,1.4,.4,1) both; }
 
+        /* ============================================
+           ROLE CARD (for sh-role-screen)
+           ============================================ */
+        .sh-role-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 220px;
+            min-height: 300px;
+            margin: 12px auto;
+            padding: 24px 18px 18px;
+            border: 3px solid var(--brown);
+            border-radius: 8px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.1em;
+            text-align: center;
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.28);
+            animation: shCardDeal 0.55s cubic-bezier(.2,1.4,.4,1) both;
+        }
+        .sh-role-card::before,
+        .sh-role-card::after {
+            content: '';
+            position: absolute;
+            width: 22px; height: 22px;
+            pointer-events: none;
+            opacity: 0.75;
+        }
+        .sh-role-card::before {
+            top: 8px; left: 8px;
+            border-top: 2px solid currentColor;
+            border-left: 2px solid currentColor;
+        }
+        .sh-role-card::after {
+            bottom: 8px; right: 8px;
+            border-bottom: 2px solid currentColor;
+            border-right: 2px solid currentColor;
+        }
+        .sh-role-card .sh-role-card-icon {
+            font-size: 3.2rem;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+        }
+        .sh-role-card .sh-role-card-name {
+            font-size: 1.6rem;
+            font-weight: 400;
+        }
+        .sh-role-card .sh-role-card-sub {
+            font-family: 'UnifrakturCook', cursive;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+            opacity: 0.75;
+        }
+        .sh-role-card .sh-role-card-desc {
+            font-family: 'Crimson Pro', Georgia, serif;
+            font-size: 0.82rem;
+            letter-spacing: 0;
+            line-height: 1.4;
+            padding: 0 4px;
+            margin-top: 4px;
+            font-style: italic;
+        }
+        .sh-role-card.lib {
+            background: linear-gradient(175deg, rgba(74,111,165,0.22) 0%, rgba(74,111,165,0.05) 100%);
+            border-color: var(--liberal-blue);
+            color: var(--liberal-blue);
+        }
+        .sh-role-card.fas {
+            background: linear-gradient(175deg, rgba(194,59,34,0.25) 0%, rgba(194,59,34,0.06) 100%);
+            border-color: var(--fascist-red);
+            color: var(--fascist-red);
+        }
+        .sh-role-card.hitler {
+            background:
+                radial-gradient(ellipse at 50% 25%, rgba(201,162,39,0.22) 0%, transparent 60%),
+                linear-gradient(168deg, #2a2318 0%, #1a1510 100%);
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 6px 6px 0 rgba(0,0,0,0.4), 0 0 24px rgba(201,162,39,0.2);
+        }
+        .sh-role-card.hitler .sh-role-card-desc { color: rgba(232,223,208,0.85); font-style: italic; }
+
+        /* Smaller power/behavior sub-card shown underneath */
+        .sh-role-subcard {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin: 8px auto;
+            padding: 14px 16px;
+            border: 2px dashed var(--brown);
+            border-radius: 6px;
+            background: var(--cream-light);
+            color: var(--brown);
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.08em;
+            max-width: 260px;
+        }
+        .sh-role-subcard.power { border-style: solid; border-color: var(--gold); background: linear-gradient(175deg, rgba(201,162,39,0.18) 0%, rgba(201,162,39,0.04) 100%); }
+        .sh-role-subcard .sh-role-subcard-kind {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            opacity: 0.65;
+        }
+        .sh-role-subcard .sh-role-subcard-name {
+            font-size: 1.2rem;
+        }
+        .sh-role-subcard .sh-role-subcard-desc {
+            font-family: 'Crimson Pro', Georgia, serif;
+            font-size: 0.82rem;
+            letter-spacing: 0;
+            font-style: italic;
+            line-height: 1.4;
+            text-align: center;
+        }
+
         .sh-player-list { list-style: none; padding: 0; margin: 8px 0; }
         .sh-player-pick {
             display: flex; align-items: center; gap: 8px;
@@ -2973,12 +3092,12 @@
     <div id="sh-role-screen" class="screen sh-screen">
         <div class="sh-container">
             <h2 class="sh-h" id="sh-role-title">Your Secret Role</h2>
-            <div class="sh-banner" id="sh-role-banner">—</div>
-            <div class="sh-text" id="sh-role-text">—</div>
+            <div id="sh-role-card-slot"></div>
             <div id="sh-role-team" style="display: none;">
                 <div class="sh-meta">Your team:</div>
                 <ul class="sh-team-list" id="sh-role-team-list"></ul>
             </div>
+            <div id="sh-role-extras"></div>
             <div class="sh-meta" style="margin-top: 10px;">Keep this secret. The game continues automatically.</div>
         </div>
     </div>
@@ -6129,13 +6248,32 @@
         }
 
         const SH_POWER_ROLES = [
-            { id: 'police_chief', label: 'Police Chief', desc: 'Secretly reveal another player\u2019s party once.' },
-            { id: 'assassin', label: 'Assassin', desc: 'Privately name a target for assassination once.' },
-            { id: 'journalist', label: 'Journalist', desc: 'Publish a truth or leak about another player once.' },
-            { id: 'industrialist', label: 'Industrialist', desc: 'Bribe a player once \u2014 effect decided by group.' },
-            { id: 'union_organizer', label: 'Union Organizer', desc: 'Call a strike that blocks an enactment once.' },
-            { id: 'constitutional_judge', label: 'Constitutional Judge', desc: 'Veto any policy enactment once.' }
+            { id: 'police_chief', label: 'Police Chief', desc: 'Privately investigate a player \u2014 learn their party.', target: true },
+            { id: 'assassin', label: 'Assassin', desc: 'Execute another player; if they are Hitler, Liberals win.', target: true },
+            { id: 'journalist', label: 'Journalist', desc: 'Publicly expose a player\u2019s party in the game log.', target: true },
+            { id: 'industrialist', label: 'Industrialist', desc: 'Bribe a player \u2014 your intent is logged publicly.', target: true },
+            { id: 'union_organizer', label: 'Union Organizer', desc: 'Call a strike: the next enacted policy is discarded; tracker advances.', target: false },
+            { id: 'constitutional_judge', label: 'Constitutional Judge', desc: 'Judicial veto: the next enacted policy is discarded; tracker unchanged.', target: false }
         ];
+        const SH_POWER_META = Object.fromEntries(SH_POWER_ROLES.map(p => [p.id, p]));
+        const SH_BEHAVIOR_DESC = {
+            feminist: 'Champion of suffrage and women\u2019s rights.',
+            misogynist: 'Traditionalist, suspicious of women in politics.',
+            aristocrat: 'Old money and title; uneasy with the Republic.',
+            proletarian: 'Working-class solidarity; favors labor.',
+            pacifist: 'Opposes militarism and war at all costs.',
+            militarist: 'Glorifies the army; favors strength and discipline.',
+            monarchist: 'Would restore the Kaiser if they could.',
+            revolutionary: 'Ready to burn it all down for a new order.',
+            prussian: 'Order, duty, service \u2014 and Berlin.',
+            bavarian: 'Catholic, conservative, Munich-proud.',
+            devout: 'Guided by faith; trusts institutions of morality.',
+            atheist: 'Skeptic of clergy and revealed authority.',
+            academic: 'Lives in ideas; wary of mass movements.',
+            worker: 'Union meetings and the factory floor.',
+            veteran: 'Marked by the Great War\u2019s losses.',
+            hothead: 'Acts first, thinks later; street-level energy.'
+        };
         const SH_BEHAVIOR_ROLES = [
             'feminist','misogynist','aristocrat','proletarian',
             'pacifist','militarist','monarchist','revolutionary',
@@ -6335,22 +6473,24 @@
             const role = priv.me.role;
             const party = priv.me.party;
             const titleEl = document.getElementById('sh-role-title');
-            const bannerEl = document.getElementById('sh-role-banner');
-            const textEl = document.getElementById('sh-role-text');
             const teamWrap = document.getElementById('sh-role-team');
             const teamList = document.getElementById('sh-role-team-list');
+            const cardSlot = document.getElementById('sh-role-card-slot');
             titleEl.textContent = priv.me.name + "'s Role";
-            bannerEl.className = 'sh-banner ' + (party === 'liberal' ? 'lib' : 'fas');
-            if (role === 'liberal') {
-                bannerEl.textContent = 'LIBERAL';
-                textEl.textContent = 'You are on the Liberal team. Win by enacting 5 Liberal policies or executing Hitler.';
-            } else if (role === 'fascist') {
-                bannerEl.textContent = 'FASCIST';
-                textEl.textContent = 'You are on the Fascist team. Win by enacting 6 Fascist policies or getting Hitler elected Chancellor after 3 Fascist policies.';
-            } else if (role === 'hitler') {
-                bannerEl.textContent = 'HITLER';
-                textEl.textContent = 'You are Hitler. You win with the Fascists. Be elected Chancellor after 3 Fascist policies to win instantly — but do not get executed.';
-            }
+            // Build the big role card
+            const roleMeta = {
+                liberal: { klass: 'lib', icon: 'fa-scroll', name: 'LIBERAL', sub: 'Liberaler', desc: 'You are on the Liberal team. Win by enacting 5 Liberal policies or executing Hitler.' },
+                fascist: { klass: 'fas', icon: 'fa-fire', name: 'FASCIST', sub: 'Faſchiſt', desc: 'You are on the Fascist team. Win by enacting 6 Fascist policies or getting Hitler elected Chancellor after 3 Fascist policies.' },
+                hitler:  { klass: 'hitler', icon: 'fa-crown', name: 'HITLER', sub: 'Der Führer', desc: 'You win with the Fascists. Be elected Chancellor after 3 Fascist policies to win instantly — but do not get executed.' }
+            };
+            const m = roleMeta[role] || roleMeta.liberal;
+            cardSlot.innerHTML =
+                '<div class="sh-role-card ' + m.klass + '">' +
+                    '<i class="sh-role-card-icon fas ' + m.icon + '"></i>' +
+                    '<div class="sh-role-card-name">' + m.name + '</div>' +
+                    '<div class="sh-role-card-sub">' + m.sub + '</div>' +
+                    '<div class="sh-role-card-desc">' + m.desc + '</div>' +
+                '</div>';
             teamWrap.style.display = 'none';
             teamList.innerHTML = '';
             if (priv.fascistTeam && priv.fascistTeam.length) {
@@ -6362,56 +6502,30 @@
                     teamList.appendChild(li);
                 });
             }
-            // Remove any previous power-role block
-            const oldPw = document.getElementById('sh-role-power');
-            if (oldPw) oldPw.remove();
-            if (priv.me.powerRole || priv.me.behaviorRole) {
-                const powerMeta = {
-                    police_chief: { label: 'Police Chief', desc: 'Once per game, secretly reveal the party of any other player.' },
-                    assassin: { label: 'Assassin', desc: 'Once per game, privately name a target for assassination.' },
-                    journalist: { label: 'Journalist', desc: 'Once per game, publish a truth or leak about another player.' },
-                    industrialist: { label: 'Industrialist', desc: 'Once per game, bribe a player — your group decides the effect.' },
-                    union_organizer: { label: 'Union Organizer', desc: 'Once per game, call a strike that blocks an enactment.' },
-                    constitutional_judge: { label: 'Constitutional Judge', desc: 'Once per game, veto any policy enactment.' }
-                };
-                const behDesc = {
-                    feminist: 'Champion of suffrage and women\u2019s rights.',
-                    misogynist: 'Traditionalist, suspicious of women in politics.',
-                    aristocrat: 'Old money and title; uneasy with the Republic.',
-                    proletarian: 'Working-class solidarity; favors labor.',
-                    pacifist: 'Opposes militarism and war at all costs.',
-                    militarist: 'Glorifies the army; favors strength and discipline.',
-                    monarchist: 'Would restore the Kaiser if they could.',
-                    revolutionary: 'Ready to burn it all down for a new order.',
-                    prussian: 'Order, duty, service \u2014 and Berlin.',
-                    bavarian: 'Catholic, conservative, Munich-proud.',
-                    devout: 'Guided by faith; trusts institutions of morality.',
-                    atheist: 'Skeptic of clergy and revealed authority.',
-                    academic: 'Lives in ideas; wary of mass movements.',
-                    worker: 'Union meetings and the factory floor.',
-                    veteran: 'Marked by the Great War\u2019s losses.',
-                    hothead: 'Acts first, thinks later; street-level energy.'
-                };
-                const container = document.querySelector('#sh-role-screen .sh-container');
-                const block = document.createElement('div');
-                block.id = 'sh-role-power';
-                block.style.margin = '10px 0';
-                let html = '';
-                if (priv.me.powerRole) {
-                    const meta = powerMeta[priv.me.powerRole] || { label: priv.me.powerRole, desc: '' };
-                    html += '<div class="sh-meta" style="margin-top: 8px;">Your expansion POWER role:</div>' +
-                        '<div class="sh-banner" style="background: var(--gold); color: var(--brown); border-color: var(--brown);">' + meta.label + '</div>' +
-                        '<div class="sh-text">' + meta.desc + '</div>';
-                } else if (priv.me.behaviorRole) {
-                    const key = priv.me.behaviorRole;
-                    const niceName = key.charAt(0).toUpperCase() + key.slice(1);
-                    html += '<div class="sh-meta" style="margin-top: 8px;">Your expansion BEHAVIOR role:</div>' +
-                        '<div class="sh-banner" style="background: var(--cream); color: var(--brown); border-color: var(--brown);">' + niceName + '</div>' +
-                        '<div class="sh-text">' + (behDesc[key] || '') + '</div>';
-                }
-                html += '<div class="sh-meta" style="font-size: 0.72rem;"><em>Mechanics are played out informally by the group.</em></div>';
-                block.innerHTML = html;
-                container.appendChild(block);
+            const extras = document.getElementById('sh-role-extras');
+            extras.innerHTML = '';
+            if (priv.me.powerRole) {
+                const meta = SH_POWER_META[priv.me.powerRole] || { label: priv.me.powerRole, desc: '' };
+                const sub = document.createElement('div');
+                sub.className = 'sh-role-subcard power';
+                const statusText = priv.me.powerUsed
+                    ? 'USED'
+                    : (priv.me.alive ? 'READY — use from the play screen' : 'unavailable');
+                sub.innerHTML =
+                    '<div class="sh-role-subcard-kind">Expansion Power \u2014 ' + statusText + '</div>' +
+                    '<div class="sh-role-subcard-name">' + meta.label + '</div>' +
+                    '<div class="sh-role-subcard-desc">' + meta.desc + '</div>';
+                extras.appendChild(sub);
+            } else if (priv.me.behaviorRole) {
+                const key = priv.me.behaviorRole;
+                const niceName = key.charAt(0).toUpperCase() + key.slice(1);
+                const sub = document.createElement('div');
+                sub.className = 'sh-role-subcard';
+                sub.innerHTML =
+                    '<div class="sh-role-subcard-kind">Expansion Behavior</div>' +
+                    '<div class="sh-role-subcard-name">' + niceName + '</div>' +
+                    '<div class="sh-role-subcard-desc">' + (SH_BEHAVIOR_DESC[key] || '') + '</div>';
+                extras.appendChild(sub);
             }
             // Add ack button once
             const active = document.querySelector('.screen.active');
@@ -6483,6 +6597,50 @@
                     tally.appendChild(chip);
                 });
                 actions.appendChild(tally);
+            }
+            // Expansion power log (visible to all)
+            if (pub.powerLog && pub.powerLog.length) {
+                const logBox = document.createElement('div');
+                logBox.style.cssText = 'margin: 10px 0; padding: 8px 10px; background: rgba(0,0,0,0.05); border-left: 3px solid var(--gold); font-size: 0.82rem; text-align: left; max-height: 140px; overflow-y: auto;';
+                const hdr = document.createElement('div');
+                hdr.className = 'sh-meta';
+                hdr.textContent = 'Expansion Log';
+                logBox.appendChild(hdr);
+                pub.powerLog.slice(-10).reverse().forEach(entry => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'margin: 4px 0; font-family: "Crimson Pro", serif;';
+                    row.textContent = entry.publicResult || (entry.byName + ' used ' + entry.power);
+                    logBox.appendChild(row);
+                });
+                actions.appendChild(logBox);
+            }
+            // Private investigator/power result
+            if (priv && priv.privatePowerResult) {
+                const r = priv.privatePowerResult;
+                const note = document.createElement('div');
+                note.className = 'sh-banner ' + (r.party === 'liberal' ? 'lib' : 'fas');
+                note.style.margin = '8px 0';
+                note.textContent = 'Your investigation: ' + r.name + ' is ' + (r.party === 'liberal' ? 'LIBERAL' : 'FASCIST');
+                actions.appendChild(note);
+            }
+            // Expansion power button (if player has unused power and is alive)
+            if (priv && priv.me && priv.me.powerRole && !priv.me.powerUsed && priv.me.alive) {
+                shRenderUsePowerUI(actions, pub, priv);
+            }
+            // Pending flags notices
+            if (pub.blockNextEnact) {
+                const note = document.createElement('div');
+                note.className = 'sh-banner warn';
+                note.style.margin = '6px 0';
+                note.textContent = 'Strike active: next enactment will be blocked.';
+                actions.appendChild(note);
+            }
+            if (pub.vetoNextEnact) {
+                const note = document.createElement('div');
+                note.className = 'sh-banner warn';
+                note.style.margin = '6px 0';
+                note.textContent = 'Judicial veto armed: next enactment will be struck down.';
+                actions.appendChild(note);
             }
             // Phase-specific
             if (pub.phase === 'nomination') {
@@ -6826,6 +6984,53 @@
         function shDoRespondVeto(agree) { return shCallAction('shRespondVeto', { agree: !!agree }); }
         function shDoUsePower(targetId) { return shCallAction('shUsePower', { targetId: targetId }); }
         function shDoAckPower() { return shCallAction('shAckPower', {}); }
+        function shDoUseExpansionPower(targetId) { return shCallAction('shUseExpansionPower', { targetId: targetId }); }
+
+        function shRenderUsePowerUI(container, pub, priv) {
+            const meta = SH_POWER_META[priv.me.powerRole];
+            if (!meta) return;
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'margin: 10px 0; padding: 10px; border: 2px solid var(--gold); background: rgba(201,162,39,0.08);';
+            const hdr = document.createElement('div');
+            hdr.className = 'sh-meta';
+            hdr.style.color = 'var(--gold)';
+            hdr.textContent = 'Expansion Power: ' + meta.label;
+            wrap.appendChild(hdr);
+            const desc = document.createElement('div');
+            desc.style.cssText = 'font-family:"Crimson Pro",serif; font-style: italic; font-size: 0.85rem; margin: 4px 0;';
+            desc.textContent = meta.desc;
+            wrap.appendChild(desc);
+            if (meta.target) {
+                const note = document.createElement('div');
+                note.className = 'sh-meta';
+                note.textContent = 'Pick a target:';
+                wrap.appendChild(note);
+                (pub.players || []).forEach(p => {
+                    if (p.id === priv.me.id) return;
+                    if (!p.alive) return;
+                    const btn = document.createElement('button');
+                    btn.className = 'sh-player-pick';
+                    btn.textContent = p.name;
+                    btn.onclick = () => {
+                        if (confirm('Use ' + meta.label + ' on ' + p.name + '? This cannot be undone.')) {
+                            shDoUseExpansionPower(p.id);
+                        }
+                    };
+                    wrap.appendChild(btn);
+                });
+            } else {
+                const btn = document.createElement('button');
+                btn.className = 'sh-btn';
+                btn.textContent = 'Activate ' + meta.label;
+                btn.onclick = () => {
+                    if (confirm('Activate ' + meta.label + '? This cannot be undone.')) {
+                        shDoUseExpansionPower(null);
+                    }
+                };
+                wrap.appendChild(btn);
+            }
+            container.appendChild(wrap);
+        }
 
         // --- End-of-game ---
         function shRenderEnd() {
