@@ -1,0 +1,19 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read",
+    "test:cov": "deno test --allow-read --coverage=.cov && deno coverage .cov --detailed",
+    "test:watch": "deno test --allow-read --watch"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any"]
+    }
+  },
+  "fmt": {
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "useTabs": false,
+    "semiColons": true,
+    "singleQuote": false
+  }
+}
