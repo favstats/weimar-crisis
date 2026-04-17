@@ -1377,6 +1377,30 @@ Deno.test("respondVeto: game not found", async () => {
   assertFalse(r.success);
 });
 
+Deno.test("expansion: empty powerRoles → no power roles assigned (behaviors-only)", async () => {
+  const { store, code, hostId } = await setupLobby(["H", "B", "C", "D", "E"]);
+  await startGame(store, code, hostId, {
+    expansion: true,
+    expansionConfig: { powerRoles: [], behaviors: ["feminist", "academic"] },
+  });
+  const full = await store.load(code);
+  const withPower = full!.state.players.filter((p: any) => p.powerRole);
+  const withBehavior = full!.state.players.filter((p: any) => p.behaviorRole);
+  assertEquals(withPower.length, 0);
+  assert(withBehavior.length > 0);
+});
+
+Deno.test("expansion: empty behaviors → no behavior roles (powers-only)", async () => {
+  const { store, code, hostId } = await setupLobby(["H", "B", "C", "D", "E"]);
+  await startGame(store, code, hostId, {
+    expansion: true,
+    expansionConfig: { powerRoles: ["police_chief"], behaviors: [] },
+  });
+  const full = await store.load(code);
+  const withBehavior = full!.state.players.filter((p: any) => p.behaviorRole);
+  assertEquals(withBehavior.length, 0);
+});
+
 Deno.test("expansion: configured behavior pool is respected", async () => {
   const { store, code, hostId } = await setupLobby(["H", "B", "C", "D", "E"]);
   await startGame(store, code, hostId, {

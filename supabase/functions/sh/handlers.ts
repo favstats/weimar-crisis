@@ -158,10 +158,12 @@ export async function shStartGame(store: Store, p: any) {
   const expansion = !!p.expansion;
   s.expansion = expansion;
   const cfg = p.expansionConfig || {};
-  const selectedPowerPool = Array.isArray(cfg.powerRoles) && cfg.powerRoles.length
+  // Distinguish "not provided" (use full default) from "provided empty"
+  // (user explicitly disabled that category — respect the empty list).
+  const selectedPowerPool = Array.isArray(cfg.powerRoles)
     ? cfg.powerRoles.filter((r: string) => POWER_ROLES.indexOf(r) >= 0)
     : POWER_ROLES.slice();
-  const selectedBehPool = Array.isArray(cfg.behaviors) && cfg.behaviors.length
+  const selectedBehPool = Array.isArray(cfg.behaviors)
     ? cfg.behaviors.filter((b: string) => BEHAVIOR_ROLES.indexOf(b) >= 0)
     : BEHAVIOR_ROLES.slice();
   const powerQueue = expansion ? shuffle(selectedPowerPool.slice()) : [];
