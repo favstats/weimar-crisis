@@ -6,9 +6,10 @@
     <title>Weimar Crisis — Expansion Roles</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=UnifrakturCook:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=UnifrakturCook:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -191,6 +192,304 @@
         .btn-inspect:hover {
             opacity: 1;
             background: rgba(212, 197, 169, 0.1);
+        }
+
+        /* ============================================
+           MODE CHOOSER (Start Screen)
+           ============================================ */
+        .mode-chooser {
+            margin-bottom: 24px;
+        }
+        .mode-chooser-label {
+            color: var(--cream);
+            font-size: 0.95rem;
+            opacity: 0.85;
+            margin-bottom: 10px;
+            letter-spacing: 0.18em;
+        }
+        .mode-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .mode-option {
+            background: rgba(212, 197, 169, 0.12);
+            border: 2px solid var(--cream);
+            color: var(--cream);
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+            font-family: 'Crimson Pro', serif;
+        }
+        .mode-option.active {
+            background: var(--cream);
+            color: var(--brown);
+            box-shadow: 0 4px 0 var(--brown);
+            transform: translateY(-2px);
+        }
+        .mode-option-title {
+            font-size: 1.1rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 2px;
+        }
+        .mode-option-sub {
+            font-size: 0.75rem;
+            opacity: 0.75;
+        }
+        #weimar-start-actions, #sh-start-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .sh-mode-note {
+            color: var(--cream);
+            opacity: 0.75;
+            font-size: 0.85rem;
+            font-style: italic;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* ============================================
+           SECRET HITLER MODE
+           ============================================ */
+        .sh-screen {
+            overflow-y: auto;
+            justify-content: flex-start;
+            padding-top: 60px;
+            padding-bottom: 80px;
+        }
+        .sh-container {
+            background: var(--cream);
+            border: 4px solid var(--brown);
+            padding: 20px;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+        .sh-h {
+            font-family: 'Bebas Neue', sans-serif;
+            color: var(--brown);
+            letter-spacing: 0.12em;
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+        }
+        .sh-h-sub {
+            font-family: 'UnifrakturCook', cursive;
+            color: var(--brown-light);
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+        }
+        .sh-text { color: var(--brown); margin: 8px 0; line-height: 1.45; }
+        .sh-meta { font-size: 0.85rem; color: var(--brown-light); margin: 4px 0; }
+        .sh-btn {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.15rem;
+            letter-spacing: 0.1em;
+            padding: 12px 20px;
+            border: 3px solid var(--brown);
+            background: var(--brown);
+            color: var(--cream);
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 3px 0 var(--brown-light);
+            transition: all 0.15s;
+            width: 100%;
+            margin: 6px 0;
+        }
+        .sh-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--brown-light); }
+        .sh-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--brown-light); }
+        .sh-btn.alt { background: var(--cream); color: var(--brown); }
+        .sh-btn.fas-red { background: var(--fascist-red); border-color: var(--fascist-dark); box-shadow: 0 3px 0 var(--fascist-dark); }
+        .sh-btn.lib-blue { background: var(--liberal-blue); border-color: var(--liberal-dark); box-shadow: 0 3px 0 var(--liberal-dark); }
+        .sh-btn.danger { background: var(--fascist-dark); color: var(--cream); border-color: var(--brown); }
+        .sh-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+        .sh-setup-row { display: flex; align-items: center; justify-content: space-between; margin: 10px 0; gap: 10px; }
+        .sh-input {
+            flex: 1;
+            font-family: 'Crimson Pro', serif;
+            font-size: 1rem;
+            padding: 8px 10px;
+            border: 2px solid var(--brown);
+            background: white;
+            color: var(--brown);
+        }
+        .sh-player-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(44,36,22,0.06);
+            margin-bottom: 6px;
+        }
+        .sh-player-row .sh-input { background: white; }
+        .sh-player-row button {
+            background: var(--fascist-red);
+            color: var(--cream);
+            border: none;
+            padding: 6px 10px;
+            font-family: 'Bebas Neue', sans-serif;
+            cursor: pointer;
+            letter-spacing: 0.08em;
+        }
+        .sh-num {
+            width: 22px; height: 22px;
+            background: var(--brown); color: var(--cream);
+            border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .sh-board {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .sh-track {
+            border: 3px solid var(--brown);
+            padding: 8px;
+            background: rgba(255,255,255,0.4);
+        }
+        .sh-track-label {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.1em;
+            color: var(--brown);
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+        .sh-track-cells { display: flex; gap: 4px; justify-content: center; }
+        .sh-track-cell {
+            flex: 1;
+            aspect-ratio: 3/4;
+            background: rgba(0,0,0,0.1);
+            border: 2px solid var(--brown);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.65rem;
+            color: var(--brown);
+            text-align: center;
+            padding: 2px;
+            line-height: 1;
+        }
+        .sh-track.lib .sh-track-cell.filled { background: var(--liberal-blue); color: var(--cream); }
+        .sh-track.fas .sh-track-cell.filled { background: var(--fascist-red); color: var(--cream); }
+        .sh-policy-card {
+            display: inline-block;
+            width: 100px; height: 140px;
+            border: 3px solid var(--brown);
+            margin: 6px;
+            font-family: 'Bebas Neue', sans-serif;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center; justify-content: center;
+            color: var(--cream);
+            cursor: pointer;
+            letter-spacing: 0.08em;
+            text-align: center;
+            padding: 8px;
+            transition: transform 0.15s;
+        }
+        .sh-policy-card:hover { transform: translateY(-3px); }
+        .sh-policy-card.lib { background: var(--liberal-blue); }
+        .sh-policy-card.fas { background: var(--fascist-red); }
+        .sh-policy-card.back { background: var(--brown); }
+
+        .sh-player-list { list-style: none; padding: 0; margin: 8px 0; }
+        .sh-player-pick {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px; background: rgba(0,0,0,0.05);
+            border: 2px solid var(--brown); margin-bottom: 6px;
+            cursor: pointer; font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.06em; color: var(--brown);
+            transition: all 0.15s;
+        }
+        .sh-player-pick:hover { background: var(--brown); color: var(--cream); }
+        .sh-player-pick.disabled { opacity: 0.35; pointer-events: none; }
+        .sh-player-pick.dead { text-decoration: line-through; opacity: 0.5; pointer-events: none; }
+        .sh-player-pick.president::after { content: "PRES"; font-size: 0.7rem; background: var(--gold); color: var(--brown); padding: 1px 6px; margin-left: auto; }
+        .sh-player-pick.chancellor::after { content: "CHAN"; font-size: 0.7rem; background: var(--gold); color: var(--brown); padding: 1px 6px; margin-left: auto; }
+        .sh-player-pick.last-pres::after { content: "LAST PRES"; font-size: 0.65rem; background: var(--tan); color: var(--brown); padding: 1px 6px; margin-left: auto; }
+        .sh-player-pick.last-chan::after { content: "LAST CHAN"; font-size: 0.65rem; background: var(--tan); color: var(--brown); padding: 1px 6px; margin-left: auto; }
+        .sh-player-pick.investigated::before { content: "🔍 "; }
+
+        .sh-banner {
+            padding: 12px;
+            margin: 12px 0;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.1em;
+            text-align: center;
+            border: 3px solid;
+        }
+        .sh-banner.fas { background: var(--fascist-red); color: var(--cream); border-color: var(--fascist-dark); }
+        .sh-banner.lib { background: var(--liberal-blue); color: var(--cream); border-color: var(--liberal-dark); }
+        .sh-banner.warn { background: var(--gold); color: var(--brown); border-color: var(--brown); }
+
+        .sh-vote-tally {
+            display: flex; gap: 8px; justify-content: center;
+            margin: 12px 0; flex-wrap: wrap;
+        }
+        .sh-vote-chip {
+            font-family: 'Bebas Neue', sans-serif;
+            padding: 6px 10px;
+            border: 2px solid var(--brown);
+            font-size: 0.85rem;
+            letter-spacing: 0.06em;
+        }
+        .sh-vote-chip.ja { background: var(--liberal-blue); color: var(--cream); }
+        .sh-vote-chip.nein { background: var(--fascist-red); color: var(--cream); }
+        .sh-vote-chip.pending { background: rgba(0,0,0,0.1); color: var(--brown-light); }
+
+        .sh-reveal-card {
+            background: var(--brown); color: var(--cream);
+            border: 4px solid var(--cream);
+            padding: 30px 20px;
+            cursor: pointer;
+            margin: 20px 0;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        .sh-reveal-card:hover { transform: translateY(-2px); }
+        .sh-pass-instr {
+            font-size: 1.3rem;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.12em;
+            margin: 14px 0;
+        }
+        .sh-pass-name {
+            font-family: 'UnifrakturCook', cursive;
+            font-size: 2rem;
+            color: var(--gold);
+            margin: 16px 0;
+        }
+        .sh-team-list { text-align: left; padding: 8px 16px; }
+        .sh-team-list li { padding: 4px 0; font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.06em; font-size: 1.1rem; }
+        .sh-team-list li.hitler { color: var(--gold); }
+
+        .sh-track-power-marker {
+            position: relative;
+        }
+        .sh-track-power-marker::after {
+            content: attr(data-power);
+            position: absolute;
+            top: -16px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.55rem;
+            background: var(--brown);
+            color: var(--cream);
+            padding: 1px 4px;
+            white-space: nowrap;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
+        }
+        .sh-host-controls {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 2px dashed var(--brown-light);
         }
 
         /* ============================================
@@ -1298,6 +1597,858 @@
             text-align: center;
             margin-top: 8px;
         }
+
+        /* ============================================
+           DOPPELAGENT (DOUBLE AGENT) MECHANIC
+           ============================================ */
+
+        /* Sealed Envelope Overlay */
+        .doppelagent-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 8, 5, 0.97);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .doppelagent-overlay.active {
+            display: flex;
+        }
+
+        /* Wax Seal Animation */
+        @keyframes sealBreak {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            30% { transform: scale(1.15) rotate(-3deg); }
+            60% { transform: scale(0.9) rotate(5deg); opacity: 0.8; }
+            100% { transform: scale(0) rotate(15deg); opacity: 0; }
+        }
+        @keyframes envelopeOpen {
+            0% { transform: rotateX(0deg); max-height: 0; opacity: 0; }
+            100% { transform: rotateX(0deg); max-height: 800px; opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes flickerGlow {
+            0%, 100% { text-shadow: 0 0 4px rgba(201,162,39,0.3), 0 0 8px rgba(201,162,39,0.1); }
+            50% { text-shadow: 0 0 8px rgba(201,162,39,0.6), 0 0 16px rgba(201,162,39,0.3); }
+        }
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes pulseSubtle {
+            0%, 100% { opacity: 0.06; }
+            50% { opacity: 0.12; }
+        }
+
+        /* The Sealed Envelope (pre-open state) */
+        .doppelagent-envelope {
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            cursor: pointer;
+            animation: fadeInUp 1.2s ease-out;
+        }
+        .doppelagent-envelope:hover .da-seal {
+            box-shadow: 0 0 30px rgba(194, 59, 34, 0.6), 0 0 60px rgba(194, 59, 34, 0.2);
+        }
+        .da-seal {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            background: radial-gradient(circle at 40% 35%, #d44 25%, #8B2500 70%, #5a1200 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                inset 0 -4px 8px rgba(0,0,0,0.4),
+                inset 0 2px 4px rgba(255,200,200,0.2),
+                0 0 20px rgba(194, 59, 34, 0.4),
+                0 8px 24px rgba(0,0,0,0.5);
+            position: relative;
+            transition: box-shadow 0.3s;
+        }
+        .da-seal::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border: 2px solid rgba(255,200,200,0.15);
+            border-radius: 50%;
+        }
+        .da-seal-icon {
+            font-size: 2.2rem;
+            color: rgba(255,220,200,0.85);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .da-seal.breaking {
+            animation: sealBreak 0.8s ease-in-out forwards;
+        }
+        .da-envelope-text {
+            font-family: 'Special Elite', cursive;
+            color: var(--cream);
+            font-size: 1rem;
+            opacity: 0.7;
+            letter-spacing: 0.05em;
+            margin-top: 16px;
+        }
+        .da-envelope-subtitle {
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.85rem;
+            color: var(--cream);
+            opacity: 0.4;
+            font-style: italic;
+            margin-top: 8px;
+        }
+
+        /* The Letter (post-open state) */
+        .doppelagent-letter {
+            width: 100%;
+            max-width: 380px;
+            background:
+                linear-gradient(180deg, #E8DFD0 0%, #D4C5A9 40%, #C8B890 100%);
+            border: 3px solid var(--brown);
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(201,162,39,0.3),
+                0 12px 40px rgba(0,0,0,0.6),
+                inset 0 0 60px rgba(90,74,50,0.15);
+            display: none;
+            animation: envelopeOpen 0.8s ease-out;
+        }
+        .doppelagent-letter.active {
+            display: block;
+        }
+
+        /* Paper texture overlay */
+        .doppelagent-letter::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 28px,
+                    rgba(90,74,50,0.04) 28px,
+                    rgba(90,74,50,0.04) 29px
+                );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Reichsadler watermark */
+        .doppelagent-letter::after {
+            content: '\2660';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14rem;
+            color: rgba(90,74,50,0.06);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulseSubtle 4s ease-in-out infinite;
+        }
+
+        .da-letter-content {
+            position: relative;
+            z-index: 2;
+            padding: 28px 24px;
+        }
+
+        .da-confidential {
+            text-align: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.35em;
+            color: var(--fascist-red);
+            border-top: 2px solid var(--fascist-red);
+            border-bottom: 2px solid var(--fascist-red);
+            padding: 6px 0;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        .da-confidential-sub {
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+
+        .da-greeting {
+            font-family: 'Special Elite', cursive;
+            font-size: 1.05rem;
+            color: var(--brown);
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+
+        .da-body-text {
+            font-family: 'Special Elite', cursive;
+            font-size: 0.92rem;
+            color: var(--brown);
+            line-height: 1.7;
+            margin-bottom: 16px;
+            opacity: 0.85;
+        }
+
+        .da-signature {
+            font-family: 'UnifrakturCook', cursive;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--brown);
+            text-align: right;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(90,74,50,0.2);
+            opacity: 0.8;
+        }
+
+        .da-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 2px solid rgba(90,74,50,0.15);
+        }
+
+        .da-btn {
+            flex: 1;
+            padding: 14px 12px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: 3px solid;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .da-btn:hover { transform: translateY(-2px); }
+        .da-btn:active { transform: translateY(1px); }
+
+        .da-btn-accept {
+            background: var(--fascist-dark);
+            color: var(--cream);
+            border-color: var(--fascist-red);
+            box-shadow: 0 4px 0 #5a1200, 0 0 12px rgba(194,59,34,0.2);
+        }
+        .da-btn-accept:hover {
+            box-shadow: 0 6px 0 #5a1200, 0 0 20px rgba(194,59,34,0.35);
+        }
+
+        .da-btn-refuse {
+            background: var(--cream);
+            color: var(--brown);
+            border-color: var(--brown);
+            box-shadow: 0 4px 0 var(--tan);
+        }
+        .da-btn-refuse:hover {
+            box-shadow: 0 6px 0 var(--tan);
+        }
+
+        .da-deadline {
+            text-align: center;
+            margin-top: 14px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.8rem;
+            color: var(--brown-light);
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        /* Confirmation Dialog */
+        .da-confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 8, 5, 0.92);
+            z-index: 2100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .da-confirm-overlay.active {
+            display: flex;
+        }
+        .da-confirm-box {
+            background: var(--cream);
+            border: 4px solid var(--fascist-red);
+            padding: 28px 24px;
+            max-width: 340px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(194,59,34,0.3), 0 12px 40px rgba(0,0,0,0.5);
+            animation: fadeInUp 0.3s ease-out;
+        }
+        .da-confirm-title {
+            font-family: 'UnifrakturCook', cursive;
+            font-weight: 700;
+            font-size: 1.6rem;
+            color: var(--fascist-dark);
+            margin-bottom: 4px;
+        }
+        .da-confirm-subtitle {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            color: var(--brown-light);
+            margin-bottom: 16px;
+        }
+        .da-confirm-text {
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.95rem;
+            color: var(--brown);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .da-confirm-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .da-confirm-buttons .da-btn { font-size: 1rem; padding: 12px 10px; }
+
+        /* Result Screens (Accept / Refuse) */
+        .da-result {
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            display: none;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .da-result.active {
+            display: block;
+        }
+
+        .da-result-card {
+            background: var(--brown);
+            border: 3px solid;
+            padding: 28px 24px;
+            color: var(--cream);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        }
+
+        .da-result-card.accept {
+            border-color: var(--fascist-red);
+            box-shadow: 0 0 30px rgba(194,59,34,0.2), 0 12px 40px rgba(0,0,0,0.5);
+        }
+        .da-result-card.refuse {
+            border-color: var(--liberal-blue);
+            box-shadow: 0 0 30px rgba(74,111,165,0.2), 0 12px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Watermark on result */
+        .da-result-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 3px solid rgba(212,197,169,0.06);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .da-result-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 0.15em;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .da-result-body {
+            font-family: 'Special Elite', cursive;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            opacity: 0.9;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .da-allies-section {
+            margin: 16px 0;
+            padding: 12px;
+            background: rgba(194,59,34,0.15);
+            border: 1px solid rgba(194,59,34,0.3);
+        }
+        .da-allies-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            color: var(--fascist-light);
+        }
+        .da-ally-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            padding: 4px 0;
+            color: var(--cream);
+            opacity: 0.9;
+        }
+        .da-ally-name i {
+            color: var(--fascist-red);
+            margin-right: 6px;
+            font-size: 0.85rem;
+        }
+
+        .da-result-note {
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.8rem;
+            font-style: italic;
+            opacity: 0.6;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(212,197,169,0.15);
+        }
+
+        .da-dismiss-btn {
+            margin-top: 20px;
+            padding: 12px 28px;
+            background: transparent;
+            border: 2px solid var(--cream);
+            color: var(--cream);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+        .da-dismiss-btn:hover {
+            opacity: 1;
+            background: rgba(212,197,169,0.1);
+        }
+
+        /* Doppelagent Badge (subtle indicator on role screen) */
+        .da-badge {
+            display: none;
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: rgba(194,59,34,0.15);
+            border: 1px solid rgba(194,59,34,0.3);
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--fascist-red);
+            opacity: 0.6;
+        }
+        .da-badge.active {
+            display: flex;
+        }
+
+        /* Sealed letter icon (pending offer indicator) */
+        .da-pending-icon {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--fascist-dark);
+            color: var(--cream);
+            border: 2px solid var(--fascist-red);
+            padding: 8px 16px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            z-index: 1500;
+            display: none;
+            animation: flickerGlow 2s ease-in-out infinite;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .da-pending-icon.active {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .da-pending-icon i {
+            font-size: 0.9rem;
+        }
+
+        /* Gazette Doppelagent Article Style */
+        .da-gazette-article {
+            background: rgba(194,59,34,0.04);
+            border-left: 3px solid var(--fascist-red);
+            padding: 12px 16px;
+            margin: 12px 0;
+            font-family: 'Special Elite', cursive;
+            font-size: 0.9rem;
+            color: var(--brown);
+            line-height: 1.6;
+        }
+        .da-gazette-headline {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+            color: var(--fascist-dark);
+            margin-bottom: 6px;
+        }
+        .da-gazette-section {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            color: var(--fascist-red);
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        /* ===== GHOST RADIO (GEISTERFUNK) ===== */
+        .ghost-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 56px;
+            background: var(--brown);
+            border-top: 3px solid #C9A227;
+            z-index: 100;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.4);
+            justify-content: center;
+            gap: 0;
+        }
+        .ghost-bottom-nav.visible { display: flex; }
+        .ghost-nav-tab {
+            flex: 1;
+            max-width: 120px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: none; border: none;
+            color: var(--tan);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            position: relative;
+            gap: 3px;
+            transition: color 0.2s;
+        }
+        .ghost-nav-tab i { font-size: 1.1rem; transition: transform 0.2s; }
+        .ghost-nav-tab.active { color: var(--gold); }
+        .ghost-nav-tab.active i { transform: scale(1.15); }
+        .ghost-nav-tab.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%; right: 20%;
+            height: 3px;
+            background: var(--gold);
+        }
+        .ghost-nav-tab[data-gtab="ghostradio"].active {
+            color: #C9B06B;
+        }
+        .ghost-nav-tab[data-gtab="ghostradio"].active::before {
+            background: #C9B06B;
+        }
+        .ghost-nav-tab .ghost-unread-badge {
+            position: absolute; top: 4px; right: 50%; transform: translateX(14px);
+            background: var(--fascist-red);
+            color: white;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.5rem;
+            min-width: 14px; height: 14px;
+            border-radius: 7px;
+            display: none;
+            align-items: center; justify-content: center;
+            padding: 0 3px;
+        }
+        .ghost-nav-tab .ghost-unread-badge.show { display: flex; }
+
+        /* Ghost Radio container (scan lines) */
+        .ghost-radio-container { position: relative; }
+        .ghost-radio-container::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Ghost Radio header (GEISTERFUNK) */
+        .ghost-radio-header { text-align: center; padding: 18px 8px 14px; }
+        .ghost-radio-header-frame {
+            border: 2px solid #C9B06B;
+            padding: 12px 20px;
+            position: relative;
+            background: linear-gradient(135deg, rgba(30,25,20,0.95) 0%, rgba(14,13,10,0.95) 100%);
+        }
+        .ghost-radio-header-frame::before, .ghost-radio-header-frame::after {
+            content: ''; position: absolute; width: 14px; height: 14px;
+        }
+        .ghost-radio-header-frame::before { top: 4px; left: 4px; border-left: 2px solid #C9B06B; border-top: 2px solid #C9B06B; opacity: 0.5; }
+        .ghost-radio-header-frame::after { bottom: 4px; right: 4px; border-right: 2px solid #C9B06B; border-bottom: 2px solid #C9B06B; opacity: 0.5; }
+        .ghost-radio-title {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.35em;
+            color: #C9B06B; text-shadow: 0 0 10px rgba(201,176,107,0.4);
+        }
+        .ghost-radio-subtitle {
+            font-family: 'Crimson Pro', serif; font-size: 0.75rem; color: #A4B77D;
+            opacity: 0.7; letter-spacing: 0.15em; margin-top: 2px; font-style: italic;
+        }
+
+        /* Vacuum tubes */
+        .ghost-tubes { display: flex; justify-content: center; gap: 16px; padding: 10px 0 6px; }
+        .ghost-tube {
+            width: 14px; height: 14px; border-radius: 50%; background: #3a2a10;
+            border: 2px solid #C9B06B; box-shadow: 0 0 6px rgba(201,176,107,0.2); transition: all 0.5s;
+        }
+        .ghost-tube.active {
+            background: #C9B06B;
+            box-shadow: 0 0 12px rgba(201,176,107,0.6), 0 0 24px rgba(201,176,107,0.3);
+            animation: tubeGlow 2s ease-in-out infinite;
+        }
+        @keyframes tubeGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(201,176,107,0.4), 0 0 16px rgba(201,176,107,0.2); }
+            50% { box-shadow: 0 0 16px rgba(201,176,107,0.7), 0 0 32px rgba(201,176,107,0.4); }
+        }
+
+        /* Frequency display */
+        .ghost-freq-display {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 8px 8px 12px; padding: 8px 14px; background: #0e0d0a;
+            border: 1px solid #3a3a2a; font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.75rem; letter-spacing: 0.12em; color: #A4B77D;
+        }
+        .ghost-freq-status { color: #C9B06B; animation: freqPulse 3s ease-in-out infinite; }
+        @keyframes freqPulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+        /* Ghost message card */
+        .ghost-message-card {
+            background: linear-gradient(135deg, #1a1a12 0%, #2a2a1a 100%);
+            border: 1px solid #3a3a2a; padding: 16px; margin: 0 8px 12px;
+            color: #C9B06B; font-family: 'Special Elite', cursive;
+            font-size: 1.05rem; line-height: 1.6; position: relative; overflow: hidden;
+        }
+        .ghost-message-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(164,183,125,0.03) 3px, rgba(164,183,125,0.03) 6px);
+            pointer-events: none;
+        }
+        .ghost-message-card::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(164,183,125,0.04), transparent);
+            animation: ghostSweep 8s linear infinite; pointer-events: none;
+        }
+        @keyframes ghostSweep { 0% { left: -50%; } 100% { left: 150%; } }
+        .ghost-message-text { position: relative; z-index: 1; }
+        .ghost-message-text .garbled-char {
+            color: #5a5a3a; animation: staticFlicker 2s infinite; font-family: 'Special Elite', monospace;
+        }
+        @keyframes staticFlicker {
+            0% { opacity: 0.7; } 20% { opacity: 0.3; } 40% { opacity: 0.6; }
+            60% { opacity: 0.4; } 80% { opacity: 0.7; } 100% { opacity: 0.5; }
+        }
+        .ghost-message-attribution {
+            position: relative; z-index: 1; display: flex; align-items: center; gap: 8px;
+            margin-top: 10px; font-family: 'Bebas Neue', sans-serif; font-size: 0.65rem;
+            letter-spacing: 0.15em; color: #A4B77D; opacity: 0.7;
+        }
+        .ghost-message-attribution::before, .ghost-message-attribution::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(90deg, transparent, #3a3a2a, transparent);
+        }
+
+        /* Ghost Radio empty state */
+        .ghost-radio-empty { text-align: center; padding: 40px 20px; color: #A4B77D; opacity: 0.5; }
+        .ghost-radio-empty i { font-size: 2.5rem; margin-bottom: 10px; color: #C9B06B; opacity: 0.3; display: block; }
+        .ghost-radio-empty-text { font-family: 'Special Elite', cursive; font-size: 0.95rem; }
+
+        /* Ghost Transmitter (compose for dead players) */
+        .ghost-transmitter {
+            background: linear-gradient(180deg, #1a1a12 0%, #0e0d0a 100%);
+            border: 2px solid #C9B06B; padding: 16px; margin: 0 8px 16px; position: relative;
+        }
+        .ghost-transmitter::before { content: ''; position: absolute; inset: 4px; border: 1px solid #3a3a2a; pointer-events: none; }
+        .ghost-transmitter-label {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.25em;
+            color: #C9B06B; text-align: center; margin-bottom: 8px; text-shadow: 0 0 8px rgba(201,176,107,0.3);
+        }
+        .ghost-transmitter-hint {
+            font-family: 'Crimson Pro', serif; font-size: 0.85rem; font-style: italic;
+            color: #A4B77D; text-align: center; margin-bottom: 14px; opacity: 0.8; line-height: 1.4;
+        }
+        .ghost-compose-area textarea {
+            width: 100%; min-height: 80px; padding: 12px; background: #0e0d0a;
+            border: 1px solid #3a3a2a; color: #C9B06B; font-family: 'Special Elite', cursive;
+            font-size: 1rem; line-height: 1.5; resize: none;
+        }
+        .ghost-compose-area textarea::placeholder { color: #5a5a3a; font-family: 'Special Elite', cursive; }
+        .ghost-compose-area textarea:focus { outline: none; border-color: #C9B06B; box-shadow: 0 0 8px rgba(201,176,107,0.2); }
+        .ghost-word-count {
+            text-align: right; font-family: 'Bebas Neue', sans-serif; font-size: 0.75rem;
+            letter-spacing: 0.1em; color: #A4B77D; margin-top: 6px; opacity: 0.7;
+        }
+        .ghost-word-count.over-limit { color: var(--fascist-red); opacity: 1; }
+
+        /* Ghost preview */
+        .ghost-preview { background: #0e0d0a; border: 1px solid #3a3a2a; padding: 12px; margin-top: 12px; }
+        .ghost-preview-label {
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.65rem; letter-spacing: 0.15em;
+            color: #A4B77D; margin-bottom: 6px; opacity: 0.6;
+        }
+        .ghost-preview-text { font-family: 'Special Elite', cursive; font-size: 0.95rem; color: #C9B06B; line-height: 1.5; }
+        .ghost-preview-note { font-family: 'Crimson Pro', serif; font-size: 0.7rem; font-style: italic; color: #5a5a3a; margin-top: 6px; }
+
+        /* Transmit button */
+        .btn-transmit {
+            background: #0e0d0a; color: #C9B06B; border: 2px solid #C9B06B;
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.15em;
+            text-transform: uppercase; padding: 14px 24px; width: 100%; cursor: pointer;
+            margin-top: 14px; transition: all 0.2s;
+        }
+        .btn-transmit:hover { background: rgba(201,176,107,0.1); box-shadow: 0 0 16px rgba(201,176,107,0.2); }
+        .btn-transmit:disabled { opacity: 0.3; cursor: not-allowed; }
+        .ghost-sent-msg {
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.8rem; letter-spacing: 0.12em;
+            color: #A4B77D; text-align: center; margin-top: 10px; opacity: 0.7;
+        }
+
+        /* Die Wahrheit (The Truth) panel */
+        .ghost-truth-panel {
+            background: linear-gradient(135deg, #1a1a12 0%, #2a2a1a 100%);
+            border: 2px solid #C9B06B; padding: 14px; margin: 0 8px 16px; position: relative;
+        }
+        .ghost-truth-panel::before { content: ''; position: absolute; inset: 4px; border: 1px solid #3a3a2a; pointer-events: none; }
+        .ghost-truth-title {
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 0.2em;
+            color: #C9B06B; text-align: center; margin-bottom: 10px; text-shadow: 0 0 6px rgba(201,176,107,0.3);
+        }
+        .ghost-truth-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 0; border-bottom: 1px solid rgba(58,58,42,0.5);
+        }
+        .ghost-truth-row:last-child { border-bottom: none; }
+        .ghost-truth-name { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 0.08em; color: #A4B77D; }
+        .ghost-truth-role { font-family: 'Bebas Neue', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; padding: 2px 8px; }
+        .ghost-truth-role.liberal { background: var(--liberal-blue); color: white; }
+        .ghost-truth-role.fascist { background: var(--fascist-red); color: white; }
+        .ghost-truth-role.hitler { background: #000; color: var(--fascist-red); border: 1px solid var(--fascist-red); }
+
+        /* Seance section */
+        .seance-section {
+            background: linear-gradient(135deg, #1a1412 0%, #2a1a1a 100%);
+            border: 2px solid #C9B06B; padding: 16px; margin: 0 8px 16px; position: relative;
+        }
+        .seance-section::before { content: ''; position: absolute; inset: 4px; border: 1px solid rgba(201,176,107,0.15); pointer-events: none; }
+        .seance-title {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.2em;
+            color: #C9B06B; text-align: center; margin-bottom: 4px; text-shadow: 0 0 8px rgba(201,176,107,0.3);
+        }
+        .seance-subtitle {
+            font-family: 'Crimson Pro', serif; font-size: 0.75rem; font-style: italic;
+            color: #A4B77D; text-align: center; margin-bottom: 12px; opacity: 0.7;
+        }
+        .seance-cost {
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em;
+            color: #5a5a3a; text-align: center; margin-bottom: 10px;
+        }
+        .seance-cost i { color: var(--gold); margin-right: 4px; }
+        .seance-form { display: flex; flex-direction: column; gap: 10px; }
+        .seance-form select, .seance-form input[type="text"] {
+            width: 100%; padding: 10px 12px; background: #0e0d0a;
+            border: 1px solid #3a3a2a; color: #C9B06B; font-family: 'Special Elite', cursive; font-size: 0.9rem;
+        }
+        .seance-form select:focus, .seance-form input[type="text"]:focus { outline: none; border-color: #C9B06B; }
+        .seance-form select option { background: #0e0d0a; color: #C9B06B; }
+        .btn-seance {
+            background: #0e0d0a; color: #C9B06B; border: 2px solid #C9B06B;
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.95rem; letter-spacing: 0.12em;
+            text-transform: uppercase; padding: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-seance:hover { background: rgba(201,176,107,0.1); box-shadow: 0 0 12px rgba(201,176,107,0.2); }
+        .btn-seance:disabled { opacity: 0.3; cursor: not-allowed; }
+        .seance-vote-area { text-align: center; margin-top: 12px; }
+        .seance-question-display {
+            font-family: 'Special Elite', cursive; font-size: 0.95rem; color: #C9B06B;
+            margin-bottom: 10px; line-height: 1.4; padding: 10px; border: 1px solid #3a3a2a; background: #0e0d0a;
+        }
+        .seance-vote-btns { display: flex; gap: 12px; justify-content: center; margin-top: 10px; }
+        .seance-vote-btn {
+            padding: 10px 28px; font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+            letter-spacing: 0.1em; border: 2px solid; cursor: pointer; background: transparent; transition: all 0.2s;
+        }
+        .seance-vote-btn.ja { color: #A4B77D; border-color: #A4B77D; }
+        .seance-vote-btn.ja:hover, .seance-vote-btn.ja.selected { background: #A4B77D; color: #0e0d0a; }
+        .seance-vote-btn.nein { color: var(--fascist-red); border-color: var(--fascist-red); }
+        .seance-vote-btn.nein:hover, .seance-vote-btn.nein.selected { background: var(--fascist-red); color: white; }
+
+        /* Seance result display */
+        .seance-result {
+            border: 2px solid #C9B06B; padding: 16px; margin: 0 8px 16px; text-align: center;
+            background: linear-gradient(135deg, #1a1412 0%, #2a1a1a 100%); position: relative;
+        }
+        .seance-result::before { content: ''; position: absolute; inset: 4px; border: 1px solid rgba(201,176,107,0.15); pointer-events: none; }
+        .seance-result-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.2em; color: #C9B06B; margin-bottom: 8px; }
+        .seance-result-question { font-family: 'Special Elite', cursive; font-size: 0.9rem; color: #A4B77D; margin-bottom: 10px; line-height: 1.4; }
+        .seance-result-answer { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.3em; margin: 8px 0; text-shadow: 0 0 12px; }
+        .seance-result-answer.ja { color: #A4B77D; }
+        .seance-result-answer.nein { color: var(--fascist-red); }
+        .seance-result-resonance { font-family: 'Special Elite', cursive; font-size: 0.85rem; color: #C9B06B; font-style: italic; opacity: 0.8; }
+        .seance-result-cost { font-family: 'Bebas Neue', sans-serif; font-size: 0.65rem; letter-spacing: 0.1em; color: #5a5a3a; margin-top: 8px; }
+
+        /* Gazette ghost section (Stimmen aus dem Jenseits) */
+        .gazette-ghost-section { margin-top: 14px; padding-top: 14px; border-top: 2px solid var(--brown); }
+        .gazette-ghost-title {
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.75rem; letter-spacing: 0.2em;
+            color: var(--fascist-dark); text-align: center; margin-bottom: 4px;
+        }
+        .gazette-ghost-subtitle {
+            font-family: 'Crimson Pro', serif; font-size: 0.7rem; font-style: italic;
+            color: var(--brown-light); text-align: center; margin-bottom: 10px;
+        }
+        .gazette-ghost-msg { padding: 8px 0; border-bottom: 1px dashed var(--tan); }
+        .gazette-ghost-msg:last-child { border-bottom: none; }
+        .gazette-ghost-freq { font-family: 'Bebas Neue', sans-serif; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--tan); margin-bottom: 2px; }
+        .gazette-ghost-text { font-family: 'Special Elite', cursive; font-size: 0.88rem; color: var(--brown); line-height: 1.4; }
+        .gazette-ghost-text .garbled-char { color: var(--tan); opacity: 0.6; }
+        .gazette-ghost-from { font-family: 'Bebas Neue', sans-serif; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--brown-light); margin-top: 2px; }
+
+        /* Ghost answer (dead player answering seance) */
+        .ghost-answer-section {
+            background: linear-gradient(135deg, #1a1412 0%, #2a1a1a 100%);
+            border: 2px solid #C9B06B; padding: 16px; margin: 0 8px 16px; text-align: center;
+        }
+        .ghost-answer-question { font-family: 'Special Elite', cursive; font-size: 1rem; color: #C9B06B; margin-bottom: 12px; line-height: 1.4; }
+        .ghost-answer-btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 10px; }
+        .ghost-resonance-input {
+            width: 100%; padding: 8px 12px; background: #0e0d0a; border: 1px solid #3a3a2a;
+            color: #C9B06B; font-family: 'Special Elite', cursive; font-size: 0.9rem; text-align: center; margin-top: 8px;
+        }
+        .ghost-resonance-input::placeholder { color: #5a5a3a; }
+        .ghost-resonance-input:focus { outline: none; border-color: #C9B06B; }
+
+        /* Ghost Radio screen layout */
+        #ghost-radio-screen {
+            background: #1e1914;
+            background-image:
+                radial-gradient(ellipse at 50% 30%, rgba(201,176,107,0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 80%, rgba(164,183,125,0.03) 0%, transparent 50%);
+            justify-content: flex-start;
+            align-items: stretch;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #ghost-radio-screen .screen-scroll {
+            padding-bottom: 76px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
@@ -1329,12 +2480,35 @@
             <h2 class="logo-subtitle title-german">Kriſe in Weimar</h2>
         </div>
         <div class="start-buttons">
-            <button class="btn btn-primary" onclick="showScreen('name-screen', true)">Create New Game</button>
-            <div class="join-input-group">
-                <input type="text" class="join-input" id="join-code-input" placeholder="GAME CODE" maxlength="10">
-                <button class="btn btn-secondary btn-join" onclick="joinWithCode()">Join</button>
+            <div class="mode-chooser">
+                <div class="mode-chooser-label title-english">Choose Game Mode</div>
+                <div class="mode-options">
+                    <button class="mode-option active" id="mode-weimar-btn" onclick="setStartMode('weimar')">
+                        <div class="mode-option-title title-english">Weimar Crisis</div>
+                        <div class="mode-option-sub">Expansion Roles</div>
+                    </button>
+                    <button class="mode-option" id="mode-sh-btn" onclick="setStartMode('secrethitler')">
+                        <div class="mode-option-title title-english">Secret Hitler</div>
+                        <div class="mode-option-sub">Original Game</div>
+                    </button>
+                </div>
             </div>
-            <button class="btn btn-inspect" onclick="showScreen('inspect-screen')">Inspect Roles</button>
+            <div id="weimar-start-actions">
+                <button class="btn btn-primary" onclick="showScreen('name-screen', true)">Create New Game</button>
+                <div class="join-input-group">
+                    <input type="text" class="join-input" id="join-code-input" placeholder="GAME CODE" maxlength="10">
+                    <button class="btn btn-secondary btn-join" onclick="joinWithCode()">Join</button>
+                </div>
+                <button class="btn btn-inspect" onclick="showScreen('inspect-screen')">Inspect Roles</button>
+            </div>
+            <div id="sh-start-actions" style="display: none;">
+                <button class="btn btn-primary" onclick="shCreateNewGame()">Create New Game</button>
+                <div class="join-input-group">
+                    <input type="text" class="join-input" id="sh-join-code-input" placeholder="GAME CODE" maxlength="10">
+                    <button class="btn btn-secondary btn-join" onclick="shJoinWithCode()">Join</button>
+                </div>
+                <div class="sh-mode-note">Multiplayer: each player joins on their own phone (5–10 players).</div>
+            </div>
         </div>
     </div>
 
@@ -1514,6 +2688,238 @@
             </div>
         </div>
     </div>
+
+    <!-- ==================== DOPPELAGENT: PENDING OFFER ICON ==================== -->
+    <div class="da-pending-icon" id="da-pending-icon" onclick="openRecruitmentOffer()">
+        <i class="fas fa-envelope-open-text"></i> SEALED MESSAGE
+    </div>
+
+    <!-- ==================== DOPPELAGENT: RECRUITMENT OFFER OVERLAY ==================== -->
+    <div class="doppelagent-overlay" id="da-overlay">
+        <!-- State 1: Sealed Envelope -->
+        <div class="doppelagent-envelope" id="da-envelope" onclick="breakSeal()">
+            <div class="da-seal" id="da-seal">
+                <span class="da-seal-icon"><i class="fas fa-stamp"></i></span>
+            </div>
+            <div class="da-envelope-text">A sealed message has arrived for you.</div>
+            <div class="da-envelope-subtitle">Open with caution.</div>
+            <div class="da-envelope-text" style="margin-top: 24px; font-size: 0.85rem; opacity: 0.5;">
+                Tap the seal to open
+            </div>
+        </div>
+
+        <!-- State 2: The Letter -->
+        <div class="doppelagent-letter" id="da-letter">
+            <div class="da-letter-content">
+                <div class="da-confidential">
+                    VERTRAULICH
+                    <div class="da-confidential-sub">Confidential</div>
+                </div>
+
+                <div class="da-greeting" id="da-greeting">
+                    Sehr geehrte/r Abgeordnete/r,
+                </div>
+
+                <div class="da-body-text">
+                    You have served the Republic faithfully. But the Republic does not deserve your faith.
+                </div>
+                <div class="da-body-text">
+                    The tide is turning. Two pillars of the old order have already fallen. Soon, the rest will follow.
+                </div>
+                <div class="da-body-text">
+                    We offer you a place at the table of the new Germany. Your talents are wasted defending a dying cause.
+                </div>
+                <div class="da-body-text">
+                    Join us. Or don't. But know this: <em>we are watching.</em>
+                </div>
+
+                <div class="da-signature">-- Die Bewegung</div>
+
+                <div class="da-buttons">
+                    <button class="da-btn da-btn-accept" onclick="acceptRecruitment()">
+                        Ich nehme an<br><span style="font-size:0.7rem;opacity:0.7;">(I Accept)</span>
+                    </button>
+                    <button class="da-btn da-btn-refuse" onclick="refuseRecruitment()">
+                        Ich lehne ab<br><span style="font-size:0.7rem;opacity:0.7;">(I Refuse)</span>
+                    </button>
+                </div>
+
+                <div class="da-deadline">
+                    This decision cannot be undone. Choose wisely.
+                </div>
+            </div>
+        </div>
+
+        <!-- State 3a: Acceptance Result -->
+        <div class="da-result" id="da-result-accept">
+            <div class="da-result-card accept">
+                <div class="da-result-title" style="color: var(--fascist-light);">
+                    WILLKOMMEN, KAMERAD.
+                </div>
+                <div class="da-result-body">
+                    You are now a Doppelagent -- a double agent serving the national movement from within the democratic ranks.
+                </div>
+                <div class="da-allies-section" id="da-allies-section">
+                    <div class="da-allies-title">Your New Allies:</div>
+                    <div id="da-allies-list">
+                        <!-- Fascist allies populated dynamically -->
+                    </div>
+                </div>
+                <div class="da-result-body">
+                    There is one among you whose identity remains hidden even from us. Find them. Protect them. They are the key to everything.
+                </div>
+                <div class="da-result-note">
+                    Your role card still reads "Liberal." Use this to your advantage. Trust no one completely -- not even your new allies know your face.
+                </div>
+            </div>
+            <button class="da-dismiss-btn" onclick="dismissRecruitment()">
+                Heil dem Vaterland
+            </button>
+        </div>
+
+        <!-- State 3b: Refusal Result -->
+        <div class="da-result" id="da-result-refuse">
+            <div class="da-result-card refuse">
+                <div class="da-result-title" style="color: var(--liberal-light);">
+                    THE REPUBLIC ENDURES.
+                </div>
+                <div class="da-result-body">
+                    You have refused the offer. Your loyalty to the Republic stands firm.
+                </div>
+                <div class="da-result-body">
+                    But now you carry a burden: you know that agents of the movement attempted to recruit from within the democratic ranks.
+                </div>
+                <div class="da-result-body">
+                    You do not know who sent the offer. You do not know if others received similar offers. You do not know if anyone else accepted.
+                </div>
+                <div class="da-result-body">
+                    What you do know is this: the fascists are confident enough to try turning one of your own. The Republic's enemies are closer than you think.
+                </div>
+                <div class="da-result-note">
+                    Use this knowledge wisely. Or not at all.
+                </div>
+            </div>
+            <button class="da-dismiss-btn" onclick="dismissRecruitment()">
+                For the Republic
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== DOPPELAGENT: ACCEPTANCE CONFIRMATION ==================== -->
+    <div class="da-confirm-overlay" id="da-confirm-overlay">
+        <div class="da-confirm-box">
+            <div class="da-confirm-title">Bist du sicher?</div>
+            <div class="da-confirm-subtitle">(Are you sure?)</div>
+            <div class="da-confirm-text">
+                This decision is final. Your allegiance will change permanently. You cannot return to the liberal cause.
+            </div>
+            <div class="da-confirm-buttons">
+                <button class="da-btn da-btn-accept" onclick="confirmAcceptRecruitment()">
+                    Confirm
+                </button>
+                <button class="da-btn da-btn-refuse" onclick="cancelAcceptRecruitment()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== GHOST RADIO SCREEN ==================== -->
+    <div id="ghost-radio-screen" class="screen">
+        <div class="screen-scroll" id="ghost-radio-content">
+            <!-- Rendered by renderGhostRadio() -->
+        </div>
+    </div>
+
+    <!-- ==================== SECRET HITLER SCREENS (networked) ==================== -->
+    <div id="sh-name-screen" class="screen sh-screen">
+        <button class="back-btn" onclick="shLeave()">←</button>
+        <div class="sh-container">
+            <h2 class="sh-h">Secret Hitler</h2>
+            <div class="sh-h-sub" id="sh-name-sub">Enter your name</div>
+            <input type="text" id="sh-player-name" class="sh-input" placeholder="Your name" maxlength="20" style="width: 100%; margin: 12px 0;">
+            <button class="sh-btn" onclick="shConfirmName()">Continue</button>
+        </div>
+    </div>
+
+    <div id="sh-lobby-screen" class="screen sh-screen">
+        <button class="back-btn" onclick="shLeave()">←</button>
+        <div class="sh-container">
+            <h2 class="sh-h">Secret Hitler — Lobby</h2>
+            <div class="lobby-code" style="margin: 8px 0;">
+                <div class="lobby-code-label title-english">Game Code</div>
+                <div class="lobby-code-value title-english" id="sh-lobby-code">XXXX00</div>
+            </div>
+            <div class="qr-section" id="sh-qr-section" style="display: none; margin: 8px 0;">
+                <div id="sh-qr-code"></div>
+                <div class="qr-label">Scan to join</div>
+            </div>
+            <div class="sh-meta">Players (<span id="sh-lobby-count">0</span>/10)</div>
+            <ul class="sh-player-list" id="sh-lobby-players"></ul>
+            <div class="sh-meta" id="sh-lobby-status">Need 5–10 players to begin.</div>
+            <button class="sh-btn" id="sh-lobby-start-btn" onclick="shHostStart()" style="display:none;" disabled>Start Game</button>
+            <button class="sh-btn alt" onclick="shCopyCode()">Copy Game Code</button>
+        </div>
+    </div>
+
+    <div id="sh-role-screen" class="screen sh-screen">
+        <div class="sh-container">
+            <h2 class="sh-h" id="sh-role-title">Your Secret Role</h2>
+            <div class="sh-banner" id="sh-role-banner">—</div>
+            <div class="sh-text" id="sh-role-text">—</div>
+            <div id="sh-role-team" style="display: none;">
+                <div class="sh-meta">Your team:</div>
+                <ul class="sh-team-list" id="sh-role-team-list"></ul>
+            </div>
+            <div class="sh-meta" style="margin-top: 10px;">Keep this secret. The game continues automatically.</div>
+        </div>
+    </div>
+
+    <div id="sh-play-screen" class="screen sh-screen">
+        <div class="sh-container">
+            <h2 class="sh-h" id="sh-play-title">Government</h2>
+            <div class="sh-board" id="sh-play-board"></div>
+            <div class="sh-meta" id="sh-play-meta"></div>
+            <div class="sh-banner" id="sh-play-banner" style="display:none;">—</div>
+            <div class="sh-text" id="sh-play-status">—</div>
+            <div id="sh-play-actions"></div>
+            <div class="sh-host-controls">
+                <button class="sh-btn alt" onclick="shShowPlayers()">Players</button>
+                <button class="sh-btn danger" id="sh-reset-btn" onclick="shConfirmReset()" style="display:none;">End Game / Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sh-end-screen" class="screen sh-screen">
+        <div class="sh-container">
+            <h2 class="sh-h" id="sh-end-title">Game Over</h2>
+            <div class="sh-banner" id="sh-end-banner">—</div>
+            <div class="sh-text" id="sh-end-detail"></div>
+            <ul class="sh-team-list" id="sh-end-roles"></ul>
+            <button class="sh-btn" id="sh-end-new-btn" onclick="shHostResetToLobby()" style="display:none;">New Game (Same Players)</button>
+            <button class="sh-btn alt" onclick="shLeave()">Exit to Main Menu</button>
+        </div>
+    </div>
+
+    <div id="sh-players-screen" class="screen sh-screen">
+        <div class="sh-container">
+            <h2 class="sh-h">Players</h2>
+            <div class="sh-meta">Turn order, who's alive, who's been investigated.</div>
+            <div id="sh-players-detail"></div>
+            <button class="sh-btn" onclick="shBackToPlay()">Back</button>
+        </div>
+    </div>
+
+    <!-- ==================== GHOST BOTTOM NAV ==================== -->
+    <nav class="ghost-bottom-nav" id="ghost-bottom-nav">
+        <button class="ghost-nav-tab active" data-gtab="role" onclick="switchGhostTab('role')">
+            <i class="fas fa-id-card"></i><span>Role</span>
+        </button>
+        <button class="ghost-nav-tab" data-gtab="ghostradio" onclick="switchGhostTab('ghostradio')">
+            <i class="fas fa-tower-broadcast"></i><span>Geisterfunk</span>
+            <span class="ghost-unread-badge" id="ghost-unread-badge">0</span>
+        </button>
+    </nav>
 
     <!-- ==================== STATUS MESSAGE ==================== -->
     <div class="status-message" id="status-message"></div>
@@ -1737,30 +3143,49 @@
         function showScreen(screenId, isCreating = false) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            
+
             // Show leave button on all screens except start screen
             const leaveBtn = document.getElementById('leave-btn');
             leaveBtn.style.display = (screenId === 'start-screen') ? 'none' : 'block';
-            
+
             if (screenId === 'name-screen') {
                 gameState.isHost = isCreating;
                 document.getElementById('player-name-input').focus();
             }
-            
+
             if (screenId === 'inspect-screen') {
                 populateInspectRoleList();
+            }
+
+            // Show/hide ghost radio bottom nav on role screen
+            if (screenId === 'role-screen') {
+                updateGhostNavVisibility();
+                // Reset ghost nav tab to 'role' active
+                document.querySelectorAll('.ghost-nav-tab').forEach(t => t.classList.remove('active'));
+                const roleTab = document.querySelector('.ghost-nav-tab[data-gtab="role"]');
+                if (roleTab) roleTab.classList.add('active');
+            } else if (screenId !== 'ghost-radio-screen') {
+                // Hide ghost nav on non-game screens
+                const ghostNav = document.getElementById('ghost-bottom-nav');
+                if (ghostNav) ghostNav.classList.remove('visible');
             }
         }
 
         // ==================== LEAVE GAME ====================
         function leaveGame() {
+            // SH game: route to its own leave handler
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen && activeScreen.id && activeScreen.id.startsWith('sh-')) {
+                shLeave();
+                return;
+            }
             if (confirm('Leave the game and return to the start screen?')) {
                 // Stop polling first
                 stopPolling();
-                
+
                 // Clear ALL stored game data
                 localStorage.removeItem('weimarCrisis');
-                
+
                 // Reset game state completely
                 gameState = {
                     gameCode: null,
@@ -1771,7 +3196,11 @@
                     myRole: null,
                     myBehaviorRole: null
                 };
-                
+
+                // Hide ghost nav
+                const ghostNav = document.getElementById('ghost-bottom-nav');
+                if (ghostNav) ghostNav.classList.remove('visible');
+
                 // Go to start screen
                 showScreen('start-screen');
             }
@@ -2797,6 +4226,2248 @@
                 if (e.key === 'Enter') confirmName();
             });
         }
+
+        // ==================== DOPPELAGENT (DOUBLE AGENT) MECHANIC ====================
+
+        /**
+         * Doppelagent state stored in gameState and persisted to localStorage.
+         * Also synced with backend via API calls.
+         *
+         * gameState.doppelagent = {
+         *     recruitmentSent: bool,        // has the offer been sent this game?
+         *     recruitmentTarget: playerId,  // who received the offer
+         *     recruitmentDay: number,       // game day the offer was triggered
+         *     recruitmentAccepted: bool|null,// true=accepted, false=refused, null=pending
+         *     turnedAgent: bool,            // is this player a turned agent?
+         *     recruitmentRefused: bool,     // did this player refuse a recruitment offer?
+         *     fascistAllies: [],            // names of fascist allies (shown on accept)
+         *     gazettePublished: bool,       // has the gazette article been published?
+         * }
+         */
+
+        // Initialize doppelagent state if not present
+        function initDoppelagentState() {
+            if (!gameState.doppelagent) {
+                gameState.doppelagent = {
+                    recruitmentSent: false,
+                    recruitmentTarget: null,
+                    recruitmentDay: null,
+                    recruitmentAccepted: null,
+                    turnedAgent: false,
+                    recruitmentRefused: false,
+                    fascistAllies: [],
+                    gazettePublished: false
+                };
+            }
+        }
+
+        /**
+         * Check if Doppelagent recruitment should trigger.
+         * Called when game state updates (e.g., after a policy is enacted).
+         *
+         * Trigger conditions (from design doc):
+         * 1. 7+ players in the game
+         * 2. Exactly 2 fascist policies enacted (triggers on the 2nd)
+         * 3. Must be Day 2 or later
+         * 4. Target must be a living liberal who is NOT President or Chancellor
+         * 5. Exactly once per game
+         *
+         * @param {Object} gameData - current game document data
+         * @param {Object} playersData - map of playerId -> player data
+         */
+        async function checkDoppelagentTrigger(gameData, playersData) {
+            initDoppelagentState();
+
+            // Already triggered this game
+            if (gameState.doppelagent.recruitmentSent) return;
+
+            // Check player count (7+ required)
+            const playerCount = Object.keys(playersData).length;
+            if (playerCount < 7) return;
+
+            // Check fascist policy count (exactly 2, triggering on the 2nd)
+            if (gameData.enactedFascist !== 2) return;
+
+            // Check game day (must be Day 2+)
+            if ((gameData.currentDay || 0) < 2) return;
+
+            // Only the host triggers recruitment (to avoid duplicate triggers)
+            if (!gameState.isHost) return;
+
+            // Find eligible liberal targets:
+            // - role is 'liberal' (not fascist, not hitler)
+            // - alive (not in deadPlayers)
+            // - not currently President or Chancellor
+            const deadPlayers = gameData.deadPlayers || [];
+            const currentPresidentId = gameData.playerOrder?.[gameData.presidentIndex] || null;
+            const currentChancellorId = gameData.chancellorNominee || null;
+
+            const eligibleTargets = Object.entries(playersData)
+                .filter(([pid, pdata]) => {
+                    if (pdata.party !== 'liberal') return false;
+                    if (pdata.role === 'hitler') return false;
+                    if (deadPlayers.includes(pid)) return false;
+                    if (pid === currentPresidentId) return false;
+                    if (pid === currentChancellorId) return false;
+                    return true;
+                })
+                .map(([pid]) => pid);
+
+            if (eligibleTargets.length === 0) return;
+
+            // Randomly select a target
+            const targetId = eligibleTargets[Math.floor(Math.random() * eligibleTargets.length)];
+
+            // Send the recruitment offer via API
+            try {
+                const result = await callAPI('doppelagentOffer', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId,
+                    targetId: targetId,
+                    day: gameData.currentDay
+                });
+
+                if (result && result.success) {
+                    // Update game document with recruitment data
+                    gameState.doppelagent.recruitmentSent = true;
+                    gameState.doppelagent.recruitmentTarget = targetId;
+                    gameState.doppelagent.recruitmentDay = gameData.currentDay;
+                    saveGameState();
+                }
+            } catch (e) {
+                console.error('Failed to send Doppelagent offer:', e);
+                // Fallback: store locally and mark as sent so we don't retry
+                gameState.doppelagent.recruitmentSent = true;
+                gameState.doppelagent.recruitmentTarget = targetId;
+                gameState.doppelagent.recruitmentDay = gameData.currentDay;
+                saveGameState();
+            }
+        }
+
+        /**
+         * Check if the current player has a pending recruitment offer.
+         * Called during polling / game state sync.
+         */
+        function checkForPendingOffer(gameData) {
+            initDoppelagentState();
+
+            // If this player already responded, nothing to show
+            if (gameState.doppelagent.turnedAgent || gameState.doppelagent.recruitmentRefused) return;
+            if (gameState.doppelagent.recruitmentAccepted !== null && gameState.doppelagent.recruitmentAccepted !== undefined) return;
+
+            // Check if this player is the recruitment target
+            const daData = gameData.doppelagent || gameData;
+            const targetId = daData.recruitmentTarget || null;
+
+            if (targetId && targetId === gameState.playerId) {
+                const response = daData.recruitmentAccepted;
+                // If response is still null/pending, show the offer indicator
+                if (response === null || response === undefined) {
+                    gameState.doppelagent.recruitmentSent = true;
+                    gameState.doppelagent.recruitmentTarget = targetId;
+                    gameState.doppelagent.recruitmentDay = daData.recruitmentDay || gameData.currentDay;
+                    gameState.doppelagent.recruitmentAccepted = null;
+                    saveGameState();
+                    showPendingOfferIcon();
+                }
+            }
+        }
+
+        /**
+         * Show the sealed letter icon indicating a pending offer.
+         */
+        function showPendingOfferIcon() {
+            const icon = document.getElementById('da-pending-icon');
+            if (icon) {
+                icon.classList.add('active');
+            }
+        }
+
+        /**
+         * Hide the pending offer icon.
+         */
+        function hidePendingOfferIcon() {
+            const icon = document.getElementById('da-pending-icon');
+            if (icon) {
+                icon.classList.remove('active');
+            }
+        }
+
+        /**
+         * Open the recruitment offer overlay (sealed envelope).
+         */
+        function openRecruitmentOffer() {
+            const overlay = document.getElementById('da-overlay');
+            const envelope = document.getElementById('da-envelope');
+            const letter = document.getElementById('da-letter');
+            const resultAccept = document.getElementById('da-result-accept');
+            const resultRefuse = document.getElementById('da-result-refuse');
+
+            // Reset states
+            envelope.style.display = 'block';
+            letter.classList.remove('active');
+            resultAccept.classList.remove('active');
+            resultRefuse.classList.remove('active');
+            document.getElementById('da-seal').classList.remove('breaking');
+
+            // Personalize greeting if we have the player name
+            if (gameState.playerName) {
+                document.getElementById('da-greeting').textContent =
+                    `Sehr geehrte/r ${gameState.playerName},`;
+            }
+
+            overlay.classList.add('active');
+            hidePendingOfferIcon();
+
+            // Play a dramatic sound
+            playDoppelagentSound();
+        }
+
+        /**
+         * Break the wax seal and reveal the letter.
+         */
+        function breakSeal() {
+            const seal = document.getElementById('da-seal');
+            const envelope = document.getElementById('da-envelope');
+            const letter = document.getElementById('da-letter');
+
+            seal.classList.add('breaking');
+            haptic(300);
+            playClick();
+
+            setTimeout(() => {
+                envelope.style.display = 'none';
+                letter.classList.add('active');
+            }, 800);
+        }
+
+        /**
+         * Player taps "I Accept" -- show confirmation dialog first.
+         */
+        function acceptRecruitment() {
+            haptic(50);
+            playClick();
+            document.getElementById('da-confirm-overlay').classList.add('active');
+        }
+
+        /**
+         * Cancel the acceptance confirmation.
+         */
+        function cancelAcceptRecruitment() {
+            haptic(30);
+            document.getElementById('da-confirm-overlay').classList.remove('active');
+        }
+
+        /**
+         * Confirm acceptance of recruitment offer.
+         * Updates player's allegiance and shows fascist allies.
+         */
+        async function confirmAcceptRecruitment() {
+            haptic(300);
+            document.getElementById('da-confirm-overlay').classList.remove('active');
+
+            try {
+                // Send acceptance to backend
+                const result = await callAPI('doppelagentRespond', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId,
+                    response: 'accepted'
+                });
+
+                // Update local state
+                gameState.doppelagent.recruitmentAccepted = true;
+                gameState.doppelagent.turnedAgent = true;
+
+                // If the API returned fascist allies, show them
+                if (result && result.fascistAllies) {
+                    gameState.doppelagent.fascistAllies = result.fascistAllies;
+                }
+
+                saveGameState();
+
+                // Populate allies list
+                const alliesList = document.getElementById('da-allies-list');
+                if (gameState.doppelagent.fascistAllies && gameState.doppelagent.fascistAllies.length > 0) {
+                    alliesList.innerHTML = gameState.doppelagent.fascistAllies.map(ally =>
+                        `<div class="da-ally-name"><i class="fas fa-user-secret"></i> ${ally} -- Fascist</div>`
+                    ).join('');
+                } else {
+                    alliesList.innerHTML = '<div class="da-ally-name" style="opacity:0.5;"><i class="fas fa-question"></i> Allies will be revealed shortly...</div>';
+                }
+
+                // Hide letter, show acceptance result
+                document.getElementById('da-letter').classList.remove('active');
+                document.getElementById('da-result-accept').classList.add('active');
+
+                playDoppelagentReveal();
+
+            } catch (e) {
+                console.error('Failed to accept recruitment:', e);
+                // Store locally anyway
+                gameState.doppelagent.recruitmentAccepted = true;
+                gameState.doppelagent.turnedAgent = true;
+                saveGameState();
+
+                document.getElementById('da-letter').classList.remove('active');
+                document.getElementById('da-result-accept').classList.add('active');
+                showStatus('Allegiance changed. Welcome, Doppelagent.', false);
+            }
+        }
+
+        /**
+         * Player refuses the recruitment offer.
+         */
+        async function refuseRecruitment() {
+            haptic(200);
+            playClick();
+
+            try {
+                await callAPI('doppelagentRespond', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId,
+                    response: 'refused'
+                });
+
+                gameState.doppelagent.recruitmentAccepted = false;
+                gameState.doppelagent.recruitmentRefused = true;
+                saveGameState();
+
+                // Hide letter, show refusal result
+                document.getElementById('da-letter').classList.remove('active');
+                document.getElementById('da-result-refuse').classList.add('active');
+
+            } catch (e) {
+                console.error('Failed to refuse recruitment:', e);
+                gameState.doppelagent.recruitmentAccepted = false;
+                gameState.doppelagent.recruitmentRefused = true;
+                saveGameState();
+
+                document.getElementById('da-letter').classList.remove('active');
+                document.getElementById('da-result-refuse').classList.add('active');
+            }
+        }
+
+        /**
+         * Dismiss the recruitment result screen.
+         */
+        function dismissRecruitment() {
+            haptic(30);
+            document.getElementById('da-overlay').classList.remove('active');
+            hidePendingOfferIcon();
+        }
+
+        /**
+         * Generate the Gazette article for the day after recruitment.
+         * This is a cryptic article that hints at defection without revealing details.
+         *
+         * Returns an article object that can be added to the Gazette.
+         */
+        function getDoppelagentGazetteArticle(dayAfterRecruitment) {
+            initDoppelagentState();
+
+            const da = gameState.doppelagent;
+            if (!da.recruitmentSent) return null;
+            if (da.gazettePublished) return null;
+
+            // The article publishes on the day AFTER recruitment
+            const recruitDay = da.recruitmentDay || 0;
+            if (dayAfterRecruitment !== recruitDay + 1) return null;
+
+            da.gazettePublished = true;
+            saveGameState();
+
+            return {
+                section: 'FLURFUNK',
+                headline: 'GERUCHTE EINES UBERLAUFERS',
+                headlineSub: 'Rumors of a Defector',
+                body: 'Whispers in the corridors of the Reichstag suggest that loyalties may not be as firm as they appear. Sources close to the Interior Ministry report unusual meetings in the Tiergarten after dark. "Someone has turned," a junior official confided to this reporter, "but no one knows who -- or to which side." Can anyone in the Republic truly be trusted? Or has the rot already spread to the democratic core?',
+                isDoppelagent: true
+            };
+        }
+
+        /**
+         * Get follow-up Gazette articles for subsequent days after recruitment.
+         * These are flavor-only and contain no mechanical information.
+         */
+        function getDoppelagentFollowupArticle(currentDay) {
+            initDoppelagentState();
+            const da = gameState.doppelagent;
+            if (!da.recruitmentSent || !da.recruitmentDay) return null;
+
+            const daysSinceRecruitment = currentDay - da.recruitmentDay;
+
+            const followups = {
+                2: {
+                    section: 'FLURFUNK',
+                    headline: 'Defection Rumors Persist',
+                    body: 'The defection rumors persist. A veteran Reichstag deputy was overheard saying: "Watch how they vote today. That will tell you everything."',
+                    isDoppelagent: true
+                },
+                3: {
+                    section: 'FLURFUNK',
+                    headline: 'Official Denials',
+                    body: 'Official sources deny any defection. Unofficially, the whip\'s office has begun counting votes twice.',
+                    isDoppelagent: true
+                },
+                // Final day flavor
+                5: {
+                    section: 'FLURFUNK',
+                    headline: 'The Doubt Remains',
+                    body: 'In the end, it may not matter whether someone turned. The doubt alone was enough to fracture the coalition.',
+                    isDoppelagent: true
+                }
+            };
+
+            return followups[daysSinceRecruitment] || null;
+        }
+
+        /**
+         * Check Doppelagent status on game state sync.
+         * Called from the polling loop when game data is received.
+         */
+        function syncDoppelagentState(gameData, playersData) {
+            initDoppelagentState();
+
+            if (!gameData) return;
+
+            // Check if recruitment should trigger (host only)
+            if (gameState.isHost && gameData.enactedFascist === 2 && !gameState.doppelagent.recruitmentSent) {
+                checkDoppelagentTrigger(gameData, playersData || {});
+            }
+
+            // Check if this player has a pending offer
+            if (gameData.recruitmentTarget === gameState.playerId ||
+                (gameData.doppelagent && gameData.doppelagent.targetPlayerId === gameState.playerId)) {
+
+                const response = gameData.recruitmentAccepted ??
+                    (gameData.doppelagent && gameData.doppelagent.response) ?? null;
+
+                if (response === null || response === 'pending') {
+                    // Offer is still pending
+                    if (!gameState.doppelagent.turnedAgent && !gameState.doppelagent.recruitmentRefused) {
+                        gameState.doppelagent.recruitmentSent = true;
+                        gameState.doppelagent.recruitmentTarget = gameState.playerId;
+                        gameState.doppelagent.recruitmentDay = gameData.recruitmentDay ||
+                            (gameData.doppelagent && gameData.doppelagent.triggerDay) || gameData.currentDay;
+                        gameState.doppelagent.recruitmentAccepted = null;
+                        saveGameState();
+                        showPendingOfferIcon();
+                    }
+                }
+            }
+        }
+
+        /**
+         * Get the post-game reveal data for the Doppelagent.
+         * Shows whether recruitment happened, who was targeted, and the outcome.
+         */
+        function getDoppelagentReveal() {
+            initDoppelagentState();
+            const da = gameState.doppelagent;
+
+            if (!da.recruitmentSent) {
+                return null;
+            }
+
+            return {
+                targetName: da.recruitmentTarget,
+                accepted: da.recruitmentAccepted,
+                day: da.recruitmentDay,
+                turnedAgent: da.turnedAgent
+            };
+        }
+
+        /**
+         * Render the Gazette Doppelagent article as HTML.
+         */
+        function renderDoppelagentGazetteHTML(article) {
+            if (!article || !article.isDoppelagent) return '';
+            return `
+                <div class="da-gazette-article">
+                    <div class="da-gazette-section">${article.section}</div>
+                    <div class="da-gazette-headline">${article.headline}</div>
+                    ${article.headlineSub ? `<div style="font-family:'Crimson Pro',serif; font-size:0.75rem; font-style:italic; opacity:0.6; margin-bottom:6px;">(${article.headlineSub})</div>` : ''}
+                    <div>${article.body}</div>
+                </div>
+            `;
+        }
+
+        // ==================== DOPPELAGENT SOUND EFFECTS ====================
+
+        /**
+         * Dramatic sound for the sealed letter arrival.
+         * Low, ominous tones suggesting a spy thriller.
+         */
+        function playDoppelagentSound() {
+            try {
+                const ctx = getAudioCtx();
+                // Low ominous drone
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.frequency.value = 110;
+                osc1.type = 'sawtooth';
+                gain1.gain.value = 0.06;
+                gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0);
+                osc1.start(ctx.currentTime);
+                osc1.stop(ctx.currentTime + 2.0);
+
+                // Eerie high tone
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.frequency.value = 880;
+                osc2.type = 'sine';
+                gain2.gain.value = 0.03;
+                gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+                osc2.start(ctx.currentTime + 0.3);
+                osc2.stop(ctx.currentTime + 1.5);
+
+                // Descending tension notes
+                [220, 196, 165].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = freq;
+                    osc.type = 'triangle';
+                    gain.gain.value = 0.08;
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8 + i * 0.3);
+                    osc.start(ctx.currentTime + 0.5 + i * 0.3);
+                    osc.stop(ctx.currentTime + 0.8 + i * 0.3);
+                });
+            } catch(e) {}
+        }
+
+        /**
+         * Sound for the acceptance reveal -- dark, dramatic.
+         */
+        function playDoppelagentReveal() {
+            try {
+                const ctx = getAudioCtx();
+                // Ominous ascending chord
+                [147, 175, 220, 294].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = freq;
+                    osc.type = 'sawtooth';
+                    gain.gain.value = 0.06;
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2 + i * 0.1);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + 1.2 + i * 0.1);
+                });
+                // Final low boom
+                const boom = ctx.createOscillator();
+                const boomGain = ctx.createGain();
+                boom.connect(boomGain);
+                boomGain.connect(ctx.destination);
+                boom.frequency.value = 55;
+                boom.type = 'sine';
+                boomGain.gain.value = 0.15;
+                boomGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0);
+                boom.start(ctx.currentTime + 0.6);
+                boom.stop(ctx.currentTime + 2.0);
+            } catch(e) {}
+        }
+
+        // ==================== DOPPELAGENT INTEGRATION WITH EXISTING POLLING ====================
+
+        /**
+         * Hook into the existing polling mechanism to check for Doppelagent events.
+         * This wraps the original startPolling to add Doppelagent checks.
+         */
+        const _originalStartPolling = startPolling;
+        startPolling = function() {
+            _originalStartPolling();
+
+            // Also start a secondary check for Doppelagent state
+            if (!window._daPollTimer) {
+                window._daPollTimer = setInterval(async () => {
+                    if (!gameState.gameCode) return;
+                    initDoppelagentState();
+
+                    try {
+                        // Check for Doppelagent state from backend
+                        const result = await callAPI('getDoppelagentState', {
+                            gameCode: gameState.gameCode,
+                            playerId: gameState.playerId
+                        });
+
+                        if (result && result.success) {
+                            syncDoppelagentState(result.gameData || {}, result.playersData || {});
+                        }
+                    } catch(e) {
+                        // Silently fail - Doppelagent polling is non-critical
+                    }
+                }, POLL_INTERVAL * 2); // Poll at half the frequency of main polling
+            }
+        };
+
+        const _originalStopPolling = stopPolling;
+        stopPolling = function() {
+            _originalStopPolling();
+            if (window._daPollTimer) {
+                clearInterval(window._daPollTimer);
+                window._daPollTimer = null;
+            }
+        };
+
+        /**
+         * Hook into init to restore Doppelagent state from localStorage.
+         */
+        const _originalInit = init;
+        init = function() {
+            _originalInit();
+            initDoppelagentState();
+
+            // If player has a pending offer, show the icon
+            if (gameState.doppelagent &&
+                gameState.doppelagent.recruitmentSent &&
+                gameState.doppelagent.recruitmentTarget === gameState.playerId &&
+                gameState.doppelagent.recruitmentAccepted === null &&
+                !gameState.doppelagent.turnedAgent &&
+                !gameState.doppelagent.recruitmentRefused) {
+                showPendingOfferIcon();
+            }
+        };
+
+        // ==================== GHOST RADIO (GEISTERFUNK) ====================
+
+        /**
+         * Ghost Radio state stored in gameState.ghostRadio and persisted to localStorage.
+         *
+         * gameState.ghostRadio = {
+         *     ghostMessages: [],        // { id, from, fromName, text, garbledText, day, timestamp }
+         *     myGhostMessageToday: null, // text of message sent today (or null)
+         *     seance: null,             // seance state object or null
+         *     hasDeadPlayers: false,    // whether any player has died
+         *     imDead: false,            // whether the current player is dead
+         *     lastReadCount: 0,         // for unread badge tracking
+         * }
+         */
+
+        // Protected short words that are never garbled
+        const GHOST_PROTECTED_WORDS = new Set([
+            'i','a','no','to','of','is','it','he','we','or','do','if','in',
+            'on','at','my','so','up','an','am','be','by','go','me','us'
+        ]);
+        const GHOST_REPLACEMENT_CHARS = ['#', '~', '$', '\u2588'];
+        const GHOST_DEGRADATION_RATE = 0.30;
+        const GHOST_WORD_LIMIT = 20;
+        const GHOST_SEANCE_COST = 5; // per participating player (simplified from design's 8 total)
+
+        function initGhostRadioState() {
+            if (!gameState.ghostRadio) {
+                gameState.ghostRadio = {
+                    ghostMessages: [],
+                    myGhostMessageToday: null,
+                    seance: null,
+                    hasDeadPlayers: false,
+                    imDead: false,
+                    lastReadCount: 0,
+                };
+            }
+        }
+
+        /**
+         * Simple seeded random number generator (mulberry32).
+         */
+        function ghostSeededRng(seed) {
+            let h = seed;
+            return function() {
+                h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+                h = Math.imul(h ^ (h >>> 13), 0x45d9f3b);
+                h = (h ^ (h >>> 16)) >>> 0;
+                return h / 4294967296;
+            };
+        }
+
+        /**
+         * Simple string hash for deterministic garbling.
+         */
+        function ghostHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const ch = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + ch;
+                hash |= 0;
+            }
+            return Math.abs(hash);
+        }
+
+        /**
+         * Garble a message following the design doc algorithm:
+         * - 30% of alphabetic characters replaced
+         * - First letter of each word protected
+         * - Short common words protected
+         * - Spaces and punctuation protected
+         * - Deterministic based on text + playerId + day
+         */
+        function garbleGhostMessage(rawText, playerId, day) {
+            const seed = ghostHash(rawText + (playerId || '') + (day || 0));
+            const rng = ghostSeededRng(seed);
+
+            // Split into tokens preserving spaces
+            const tokens = rawText.match(/\S+|\s+/g) || [];
+            let result = '';
+
+            for (const token of tokens) {
+                // If it's whitespace, keep it
+                if (/^\s+$/.test(token)) {
+                    result += token;
+                    continue;
+                }
+
+                // Extract word (letters/digits) and trailing punctuation
+                const wordLower = token.replace(/[^a-zA-Z]/g, '').toLowerCase();
+
+                // Protected short words
+                if (GHOST_PROTECTED_WORDS.has(wordLower)) {
+                    result += token;
+                    continue;
+                }
+
+                // Process character by character
+                let isFirstAlpha = true;
+                for (let i = 0; i < token.length; i++) {
+                    const ch = token[i];
+                    const isAlpha = /[a-zA-Z]/.test(ch);
+
+                    if (!isAlpha) {
+                        // Punctuation/digits: never garbled
+                        result += ch;
+                    } else if (isFirstAlpha) {
+                        // First alphabetic character: protected
+                        result += ch;
+                        isFirstAlpha = false;
+                    } else if (rng() < GHOST_DEGRADATION_RATE) {
+                        // Garble this character
+                        const replacement = GHOST_REPLACEMENT_CHARS[Math.floor(rng() * GHOST_REPLACEMENT_CHARS.length)];
+                        result += replacement;
+                    } else {
+                        result += ch;
+                    }
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Render garbled text as HTML with flickering garbled characters.
+         */
+        function renderGarbledHTML(garbledText) {
+            let html = '';
+            let flickerIdx = 0;
+            for (const ch of garbledText) {
+                if (GHOST_REPLACEMENT_CHARS.includes(ch)) {
+                    const delay = (flickerIdx * 0.37 % 2).toFixed(2);
+                    html += `<span class="garbled-char" style="animation-delay:${delay}s">${ch}</span>`;
+                    flickerIdx++;
+                } else {
+                    html += ch;
+                }
+            }
+            return html;
+        }
+
+        /**
+         * Count words in a string.
+         */
+        function ghostWordCount(text) {
+            const trimmed = (text || '').trim();
+            if (!trimmed) return 0;
+            return trimmed.split(/\s+/).length;
+        }
+
+        /**
+         * Show or hide the Ghost Radio bottom nav based on game state.
+         * The nav appears only after a player death occurs.
+         */
+        function updateGhostNavVisibility() {
+            initGhostRadioState();
+            const nav = document.getElementById('ghost-bottom-nav');
+            if (!nav) return;
+
+            // Show nav if there are dead players in the game
+            if (gameState.ghostRadio.hasDeadPlayers || gameState.ghostRadio.imDead) {
+                nav.classList.add('visible');
+            } else {
+                nav.classList.remove('visible');
+            }
+
+            // Update unread badge
+            const badge = document.getElementById('ghost-unread-badge');
+            if (badge) {
+                const unread = gameState.ghostRadio.ghostMessages.length - (gameState.ghostRadio.lastReadCount || 0);
+                if (unread > 0) {
+                    badge.textContent = unread;
+                    badge.classList.add('show');
+                } else {
+                    badge.classList.remove('show');
+                }
+            }
+        }
+
+        /**
+         * Switch between Role and Ghost Radio tabs.
+         */
+        function switchGhostTab(tab) {
+            document.querySelectorAll('.ghost-nav-tab').forEach(t => t.classList.remove('active'));
+            const navEl = document.querySelector(`.ghost-nav-tab[data-gtab="${tab}"]`);
+            if (navEl) navEl.classList.add('active');
+
+            if (tab === 'role') {
+                document.getElementById('role-screen').style.display = 'block';
+                document.getElementById('ghost-radio-screen').classList.remove('active');
+                // Make sure role-screen is the active screen
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('role-screen').classList.add('active');
+            } else if (tab === 'ghostradio') {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('ghost-radio-screen').classList.add('active');
+                // Mark messages as read
+                gameState.ghostRadio.lastReadCount = gameState.ghostRadio.ghostMessages.length;
+                updateGhostNavVisibility();
+                renderGhostRadio();
+            }
+            // Keep leave button visible
+            document.getElementById('leave-btn').style.display = 'block';
+        }
+
+        /**
+         * Render the Ghost Radio screen content.
+         */
+        function renderGhostRadio() {
+            initGhostRadioState();
+            const el = document.getElementById('ghost-radio-content');
+            if (!el) return;
+
+            const gr = gameState.ghostRadio;
+            const isDead = gr.imDead;
+            const messages = gr.ghostMessages || [];
+            const day = gr.currentDay || 1;
+
+            let html = '<div class="ghost-radio-container">';
+
+            // ---- HEADER ----
+            html += `<div class="ghost-radio-header">
+                <div class="ghost-radio-header-frame">
+                    <div class="ghost-radio-title">G E I S T E R F U N K</div>
+                    <div class="ghost-radio-subtitle">Ghost Radio</div>
+                </div>
+            </div>`;
+
+            // ---- VACUUM TUBES ----
+            const hasMessages = messages.length > 0;
+            html += `<div class="ghost-tubes">
+                <div class="ghost-tube ${hasMessages ? 'active' : ''}"></div>
+                <div class="ghost-tube ${hasMessages ? 'active' : ''}"></div>
+                <div class="ghost-tube ${hasMessages ? 'active' : ''}"></div>
+            </div>`;
+
+            // ---- FREQUENCY DISPLAY ----
+            html += `<div class="ghost-freq-display">
+                <span>FREQUENZ: 1923 kHz</span>
+                <span class="ghost-freq-status">${hasMessages ? 'EMPFANG... [receiving]' : 'STILLE... [silence]'}</span>
+            </div>`;
+
+            // ---- DEAD PLAYER: TRUTH PANEL + COMPOSE ----
+            if (isDead) {
+                // Show "Die Wahrheit" (The Truth) - all roles revealed
+                if (gr.allRoles && gr.allRoles.length > 0) {
+                    html += `<div class="ghost-truth-panel">
+                        <div class="ghost-truth-title">DIE WAHRHEIT (The Truth)</div>`;
+                    gr.allRoles.forEach(r => {
+                        const roleClass = r.role === 'hitler' ? 'hitler' : (r.party === 'fascist' ? 'fascist' : 'liberal');
+                        const roleLabel = r.role === 'hitler' ? 'HITLER' : r.party.toUpperCase();
+                        html += `<div class="ghost-truth-row">
+                            <span class="ghost-truth-name">${r.name}</span>
+                            <span class="ghost-truth-role ${roleClass}">${roleLabel}</span>
+                        </div>`;
+                    });
+                    html += `<div style="font-family:'Crimson Pro',serif; font-size:0.75rem; font-style:italic; color:#A4B77D; opacity:0.6; margin-top:8px; text-align:center;">
+                        You died. You see all. Use this knowledge wisely.
+                    </div></div>`;
+                }
+
+                // Compose interface (Transmitter)
+                const alreadySent = !!gr.myGhostMessageToday;
+                html += `<div class="ghost-transmitter">
+                    <div class="ghost-transmitter-label">S E N D E R</div>
+                    <div class="ghost-transmitter-hint">You see the truth now. The living cannot.<br>Speak carefully &mdash; static will claim some of your words.</div>`;
+
+                if (alreadySent) {
+                    html += `<div class="ghost-sent-msg">
+                        <i class="fas fa-check-circle" style="color:#C9B06B; margin-right:6px;"></i>
+                        Die Frequenz schweigt bis morgen.<br>(The frequency is silent until tomorrow.)
+                    </div>`;
+                } else {
+                    html += `<div class="ghost-compose-area">
+                        <textarea id="ghost-compose-text" placeholder="Type your transmission..." maxlength="300"
+                            oninput="updateGhostCompose()"></textarea>
+                        <div class="ghost-word-count" id="ghost-word-count">0 / ${GHOST_WORD_LIMIT} words</div>
+                    </div>
+                    <div class="ghost-preview" id="ghost-preview" style="display:none;">
+                        <div class="ghost-preview-label">PREVIEW (as the living will see):</div>
+                        <div class="ghost-preview-text" id="ghost-preview-text"></div>
+                        <div class="ghost-preview-note">Final static pattern may vary.</div>
+                    </div>
+                    <button class="btn-transmit" id="ghost-transmit-btn" onclick="sendGhostMessage()" disabled>
+                        <i class="fas fa-tower-broadcast"></i> &nbsp; SENDEN (Transmit)
+                    </button>
+                    <div style="font-family:'Bebas Neue',sans-serif; font-size:0.65rem; letter-spacing:0.1em; color:#5a5a3a; text-align:center; margin-top:6px;">
+                        Transmissions remaining today: 1
+                    </div>`;
+                }
+                html += `</div>`;
+            }
+
+            // ---- MESSAGES (visible to all) ----
+            if (messages.length > 0) {
+                messages.forEach((msg, idx) => {
+                    const garbled = msg.garbledText || garbleGhostMessage(msg.text, msg.from, msg.day);
+                    const garbledHTML = renderGarbledHTML(garbled);
+                    html += `<div class="ghost-message-card">
+                        <div class="ghost-message-text">>> ${garbledHTML}</div>
+                        <div class="ghost-message-attribution">
+                            ${msg.fromName || '???'} (Tag ${msg.day || '?'}, gestorben)
+                        </div>
+                    </div>`;
+                });
+            } else {
+                html += `<div class="ghost-radio-empty">
+                    <i class="fas fa-tower-broadcast"></i>
+                    <div class="ghost-radio-empty-text">Only static on the frequency...<br>No transmissions detected.</div>
+                </div>`;
+            }
+
+            // ---- SEANCE SECTION (visible to living players) ----
+            if (!isDead) {
+                html += renderSeanceSection();
+            }
+
+            // ---- GHOST ANSWERING SEANCE (visible to targeted dead player) ----
+            if (isDead && gr.seance && gr.seance.status === 'awaiting_answer' && gr.seance.targetGhost === gameState.playerId) {
+                html += renderGhostAnswerSection();
+            }
+
+            // ---- SEANCE RESULT (visible to all) ----
+            if (gr.seance && gr.seance.status === 'completed') {
+                html += renderSeanceResult();
+            }
+
+            html += '</div>'; // close ghost-radio-container
+            el.innerHTML = html;
+        }
+
+        /**
+         * Update ghost compose area (word count, preview, button state).
+         */
+        function updateGhostCompose() {
+            const textarea = document.getElementById('ghost-compose-text');
+            const countEl = document.getElementById('ghost-word-count');
+            const previewArea = document.getElementById('ghost-preview');
+            const previewText = document.getElementById('ghost-preview-text');
+            const btn = document.getElementById('ghost-transmit-btn');
+            if (!textarea) return;
+
+            const text = textarea.value;
+            const words = ghostWordCount(text);
+
+            // Update word count
+            if (countEl) {
+                countEl.textContent = `${words} / ${GHOST_WORD_LIMIT} words`;
+                if (words > GHOST_WORD_LIMIT) {
+                    countEl.classList.add('over-limit');
+                } else {
+                    countEl.classList.remove('over-limit');
+                }
+            }
+
+            // Update preview
+            if (previewArea && previewText) {
+                if (text.trim()) {
+                    const garbled = garbleGhostMessage(text, gameState.playerId, gameState.ghostRadio.currentDay || 1);
+                    previewText.innerHTML = '>> ' + renderGarbledHTML(garbled);
+                    previewArea.style.display = 'block';
+                } else {
+                    previewArea.style.display = 'none';
+                }
+            }
+
+            // Update button state
+            if (btn) {
+                btn.disabled = words === 0 || words > GHOST_WORD_LIMIT;
+            }
+        }
+
+        /**
+         * Send a ghost message to the backend.
+         */
+        async function sendGhostMessage() {
+            initGhostRadioState();
+            const textarea = document.getElementById('ghost-compose-text');
+            if (!textarea) return;
+
+            const text = textarea.value.trim();
+            if (!text || ghostWordCount(text) > GHOST_WORD_LIMIT) return;
+
+            const day = gameState.ghostRadio.currentDay || 1;
+            const garbledText = garbleGhostMessage(text, gameState.playerId, day);
+
+            try {
+                const result = await callAPI('sendGhostMessage', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId,
+                    playerName: gameState.playerName,
+                    text: text,
+                    garbledText: garbledText,
+                    day: day
+                });
+
+                if (result && result.success) {
+                    gameState.ghostRadio.myGhostMessageToday = text;
+                    // Add to local messages list
+                    gameState.ghostRadio.ghostMessages.push({
+                        id: result.messageId || ('gm_' + Date.now()),
+                        from: gameState.playerId,
+                        fromName: gameState.playerName,
+                        text: text,
+                        garbledText: garbledText,
+                        day: day,
+                        timestamp: new Date()
+                    });
+                    saveGameState();
+                    renderGhostRadio();
+                    showStatus('Transmission sent.');
+                } else {
+                    showStatus('Failed to transmit: ' + (result?.error || 'Unknown error'), true);
+                }
+            } catch (e) {
+                // Fallback: store locally even if API fails
+                gameState.ghostRadio.myGhostMessageToday = text;
+                gameState.ghostRadio.ghostMessages.push({
+                    id: 'gm_' + Date.now(),
+                    from: gameState.playerId,
+                    fromName: gameState.playerName,
+                    text: text,
+                    garbledText: garbledText,
+                    day: day,
+                    timestamp: new Date()
+                });
+                saveGameState();
+                renderGhostRadio();
+                showStatus('Transmission sent (offline mode).', true);
+            }
+        }
+
+        /**
+         * Render the Seance proposal section (for living players).
+         */
+        function renderSeanceSection() {
+            initGhostRadioState();
+            const gr = gameState.ghostRadio;
+            const seance = gr.seance;
+
+            // If seance already used
+            if (seance && seance.status === 'completed') {
+                return ''; // result is rendered separately
+            }
+
+            // If seance is in voting
+            if (seance && seance.status === 'voting') {
+                return renderSeanceVoting();
+            }
+
+            // If seance is awaiting answer
+            if (seance && seance.status === 'awaiting_answer') {
+                return `<div class="seance-section">
+                    <div class="seance-title">GEISTERSITZUNG</div>
+                    <div class="seance-subtitle">The Seance is in progress...</div>
+                    <div class="seance-question-display">
+                        Question to ${seance.targetName || '???'}:<br>
+                        "${seance.question || ''}"
+                    </div>
+                    <div style="font-family:'Bebas Neue',sans-serif; font-size:0.7rem; color:#5a5a3a; text-align:center; margin-top:8px; letter-spacing:0.1em;">
+                        Awaiting the spirit's response...
+                    </div>
+                </div>`;
+            }
+
+            // If no dead players, no seance available
+            const deadPlayers = gr.deadPlayersList || [];
+            if (deadPlayers.length === 0) return '';
+
+            // If seance already used this game
+            if (seance && seance.used) {
+                return `<div class="seance-section">
+                    <div class="seance-title">GEISTERSITZUNG</div>
+                    <div class="seance-subtitle">The Seance has been used this game.</div>
+                    <div style="font-family:'Crimson Pro',serif; font-size:0.8rem; font-style:italic; color:#5a5a3a; text-align:center; margin-top:8px;">
+                        The candles have gone dark. The frequency returns to static.
+                    </div>
+                </div>`;
+            }
+
+            // Propose seance form
+            let ghostOptions = deadPlayers.map(dp =>
+                `<option value="${dp.id}">${dp.name} (Tag ${dp.diedOnDay || '?'})</option>`
+            ).join('');
+
+            return `<div class="seance-section">
+                <div class="seance-title">GEISTERSITZUNG</div>
+                <div class="seance-subtitle">Commune with the dead &mdash; once per game</div>
+                <div class="seance-cost"><i class="fas fa-star"></i> Cost: ${GHOST_SEANCE_COST} influence per participating player</div>
+                <div class="seance-form">
+                    <select id="seance-target">
+                        <option value="">-- Select a ghost to contact --</option>
+                        ${ghostOptions}
+                    </select>
+                    <input type="text" id="seance-question" placeholder="Ask a yes/no question..." maxlength="200">
+                    <button class="btn-seance" onclick="proposeSeance()">
+                        <i class="fas fa-ghost"></i> &nbsp; PROPOSE SEANCE
+                    </button>
+                </div>
+            </div>`;
+        }
+
+        /**
+         * Render seance voting UI.
+         */
+        function renderSeanceVoting() {
+            const seance = gameState.ghostRadio.seance;
+            if (!seance) return '';
+
+            const myVote = seance.votes?.[gameState.playerId];
+            const voteCount = Object.keys(seance.votes || {}).length;
+
+            return `<div class="seance-section">
+                <div class="seance-title">GEISTERSITZUNG</div>
+                <div class="seance-subtitle">${seance.proposedByName || '???'} proposes to contact ${seance.targetName || '???'}</div>
+                <div class="seance-question-display">"${seance.question || ''}"</div>
+                <div class="seance-cost"><i class="fas fa-star"></i> Cost: ${GHOST_SEANCE_COST} influence per Ja voter</div>
+                ${myVote ? `<div style="font-family:'Bebas Neue',sans-serif; font-size:0.85rem; color:#C9B06B; text-align:center; letter-spacing:0.12em; margin-top:10px;">
+                    You voted: ${myVote.toUpperCase()} &nbsp; (${voteCount} vote${voteCount !== 1 ? 's' : ''} cast)
+                </div>` : `<div class="seance-vote-btns">
+                    <button class="seance-vote-btn ja" onclick="voteSeance('ja')">JA</button>
+                    <button class="seance-vote-btn nein" onclick="voteSeance('nein')">NEIN</button>
+                </div>`}
+            </div>`;
+        }
+
+        /**
+         * Render ghost answer section (for targeted dead player).
+         */
+        function renderGhostAnswerSection() {
+            const seance = gameState.ghostRadio.seance;
+            if (!seance) return '';
+
+            return `<div class="ghost-answer-section">
+                <div style="font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:0.15em; color:#C9B06B; margin-bottom:10px;">
+                    THE LIVING CALL UPON YOU
+                </div>
+                <div class="ghost-answer-question">"${seance.question || ''}"</div>
+                <div style="font-family:'Crimson Pro',serif; font-size:0.8rem; font-style:italic; color:#A4B77D; margin-bottom:12px;">
+                    Answer truthfully or deceive &mdash; the choice is yours.
+                </div>
+                <div class="ghost-answer-btns">
+                    <button class="seance-vote-btn ja" onclick="answerSeance('ja')">JA</button>
+                    <button class="seance-vote-btn nein" onclick="answerSeance('nein')">NEIN</button>
+                </div>
+                <input class="ghost-resonance-input" id="ghost-resonance-word" type="text"
+                    placeholder="Optional: one resonance word" maxlength="30">
+                <div style="font-family:'Crimson Pro',serif; font-size:0.7rem; font-style:italic; color:#5a5a3a; margin-top:4px;">
+                    A single word fragment. Not garbled by static.
+                </div>
+            </div>`;
+        }
+
+        /**
+         * Render seance result.
+         */
+        function renderSeanceResult() {
+            const seance = gameState.ghostRadio.seance;
+            if (!seance || seance.status !== 'completed') return '';
+
+            const answerClass = seance.answer === 'ja' ? 'ja' : 'nein';
+            return `<div class="seance-result">
+                <div class="seance-result-title">G E I S T E R S I T Z U N G</div>
+                <div style="font-family:'Crimson Pro',serif; font-size:0.8rem; font-style:italic; color:#A4B77D; margin-bottom:8px;">
+                    The citizens gathered by candlelight. The wireless crackled.
+                </div>
+                <div class="seance-result-question">
+                    Question to ${seance.targetName || '???'}:<br>"${seance.question || ''}"
+                </div>
+                <div class="seance-result-answer ${answerClass}">
+                    >>> ${seance.answer ? seance.answer.toUpperCase() : '???'} <<<
+                </div>
+                ${seance.resonanceWord ? `<div class="seance-result-resonance">Resonance: "${seance.resonanceWord}"</div>` : ''}
+                <div class="seance-result-cost">
+                    Cost: ${GHOST_SEANCE_COST} influence per participant
+                </div>
+                <div style="font-family:'Crimson Pro',serif; font-size:0.75rem; font-style:italic; color:#5a5a3a; margin-top:6px;">
+                    The candles flickered and went dark. The frequency returned to static.
+                </div>
+            </div>`;
+        }
+
+        /**
+         * Propose a seance (living player action).
+         */
+        async function proposeSeance() {
+            initGhostRadioState();
+            const targetSelect = document.getElementById('seance-target');
+            const questionInput = document.getElementById('seance-question');
+            if (!targetSelect || !questionInput) return;
+
+            const targetId = targetSelect.value;
+            const question = questionInput.value.trim();
+
+            if (!targetId) { showStatus('Select a ghost to contact.', true); return; }
+            if (!question) { showStatus('Enter a yes/no question.', true); return; }
+
+            const targetPlayer = (gameState.ghostRadio.deadPlayersList || []).find(dp => dp.id === targetId);
+
+            try {
+                const result = await callAPI('proposeSeance', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId,
+                    playerName: gameState.playerName,
+                    targetId: targetId,
+                    targetName: targetPlayer?.name || '???',
+                    question: question
+                });
+
+                if (result && result.success) {
+                    gameState.ghostRadio.seance = {
+                        status: 'voting',
+                        proposedBy: gameState.playerId,
+                        proposedByName: gameState.playerName,
+                        targetGhost: targetId,
+                        targetName: targetPlayer?.name || '???',
+                        question: question,
+                        votes: {},
+                        used: false
+                    };
+                    saveGameState();
+                    renderGhostRadio();
+                    showStatus('Seance proposed! Awaiting votes.');
+                } else {
+                    showStatus('Failed to propose seance: ' + (result?.error || 'Unknown error'), true);
+                }
+            } catch (e) {
+                // Fallback: store locally
+                gameState.ghostRadio.seance = {
+                    status: 'voting',
+                    proposedBy: gameState.playerId,
+                    proposedByName: gameState.playerName,
+                    targetGhost: targetId,
+                    targetName: targetPlayer?.name || '???',
+                    question: question,
+                    votes: {},
+                    used: false
+                };
+                saveGameState();
+                renderGhostRadio();
+                showStatus('Seance proposed (offline).');
+            }
+        }
+
+        /**
+         * Vote on a seance proposal.
+         */
+        async function voteSeance(vote) {
+            initGhostRadioState();
+            if (!gameState.ghostRadio.seance) return;
+
+            try {
+                await callAPI('voteSeance', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId,
+                    vote: vote
+                });
+            } catch (e) {
+                // Continue locally even if API fails
+            }
+
+            gameState.ghostRadio.seance.votes = gameState.ghostRadio.seance.votes || {};
+            gameState.ghostRadio.seance.votes[gameState.playerId] = vote;
+            saveGameState();
+            renderGhostRadio();
+            showStatus(`You voted ${vote.toUpperCase()} on the Seance.`);
+        }
+
+        /**
+         * Answer a seance (dead player action).
+         */
+        async function answerSeance(answer) {
+            initGhostRadioState();
+            if (!gameState.ghostRadio.seance) return;
+
+            const resonanceInput = document.getElementById('ghost-resonance-word');
+            let resonanceWord = resonanceInput ? resonanceInput.value.trim().split(/\s+/)[0] || '' : '';
+
+            try {
+                await callAPI('answerSeance', {
+                    gameCode: gameState.gameCode,
+                    playerId: gameState.playerId,
+                    answer: answer,
+                    resonanceWord: resonanceWord
+                });
+            } catch (e) {
+                // Continue locally
+            }
+
+            gameState.ghostRadio.seance.status = 'completed';
+            gameState.ghostRadio.seance.answer = answer;
+            gameState.ghostRadio.seance.resonanceWord = resonanceWord || null;
+            gameState.ghostRadio.seance.used = true;
+            saveGameState();
+            renderGhostRadio();
+            showStatus('The spirit has spoken.');
+        }
+
+        /**
+         * Build the "Stimmen aus dem Jenseits" section for a gazette-style display.
+         * Returns HTML string. Can be appended to any gazette rendering.
+         */
+        function buildGazetteGhostSection() {
+            initGhostRadioState();
+            const messages = gameState.ghostRadio.ghostMessages || [];
+            if (messages.length === 0) return '';
+
+            let html = `<div class="gazette-ghost-section">
+                <div class="gazette-ghost-title">S T I M M E N &nbsp; A U S &nbsp; D E M &nbsp; J E N S E I T S</div>
+                <div class="gazette-ghost-subtitle">Voices from Beyond</div>`;
+
+            messages.forEach((msg, idx) => {
+                const garbled = msg.garbledText || garbleGhostMessage(msg.text, msg.from, msg.day);
+                const freq = (1923 + (idx + 1) * 0.1).toFixed(1);
+                html += `<div class="gazette-ghost-msg">
+                    <div class="gazette-ghost-freq">\u2504\u2504\u2504 FREQUENZ ${freq} kHz \u2504\u2504\u2504</div>
+                    <div class="gazette-ghost-text">"${renderGarbledHTML(garbled)}"</div>
+                    <div class="gazette-ghost-from">${msg.fromName || '???'} (gestorben Tag ${msg.day || '?'})</div>
+                </div>`;
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        /**
+         * Check game data for dead players and update ghost radio state.
+         * Called from polling or game state sync.
+         */
+        function syncGhostRadioState(gameData, playersData) {
+            initGhostRadioState();
+            const gr = gameState.ghostRadio;
+
+            const deadPlayers = gameData?.deadPlayers || [];
+            gr.hasDeadPlayers = deadPlayers.length > 0;
+            gr.imDead = deadPlayers.includes(gameState.playerId);
+            gr.currentDay = gameData?.currentDay || 1;
+
+            // Build dead players list (for seance targeting)
+            gr.deadPlayersList = deadPlayers.map(pid => {
+                const pdata = playersData?.[pid] || {};
+                return {
+                    id: pid,
+                    name: pdata.name || '???',
+                    diedOnDay: pdata.diedOnDay || '?'
+                };
+            });
+
+            // If dead, populate all roles for truth panel
+            if (gr.imDead && playersData) {
+                gr.allRoles = Object.entries(playersData).map(([pid, pdata]) => ({
+                    id: pid,
+                    name: pdata.name || '???',
+                    role: pdata.role || '???',
+                    party: pdata.party || '???'
+                }));
+            }
+
+            // Sync ghost messages from game data
+            if (gameData?.ghostMessages) {
+                const serverMessages = Array.isArray(gameData.ghostMessages)
+                    ? gameData.ghostMessages
+                    : Object.values(gameData.ghostMessages);
+                // Merge: keep existing local messages, add new ones from server
+                const existingIds = new Set(gr.ghostMessages.map(m => m.id));
+                serverMessages.forEach(msg => {
+                    if (!existingIds.has(msg.id)) {
+                        gr.ghostMessages.push(msg);
+                    }
+                });
+            }
+
+            // Sync seance state
+            if (gameData?.seance) {
+                gr.seance = gameData.seance;
+            }
+
+            // Reset daily message flag if day changed
+            if (gr.lastMessageDay && gr.lastMessageDay < gr.currentDay) {
+                gr.myGhostMessageToday = null;
+            }
+
+            saveGameState();
+            updateGhostNavVisibility();
+        }
+
+        /**
+         * Hook into the polling cycle to sync ghost radio state.
+         * We monkey-patch startPolling to include ghost data checks.
+         */
+        const _originalStartPolling_ghost = startPolling;
+        startPolling = function() {
+            _originalStartPolling_ghost();
+
+            // Add a secondary poll for ghost radio data
+            if (!window._ghostPollTimer && gameState.gameCode) {
+                window._ghostPollTimer = setInterval(async () => {
+                    if (!gameState.gameCode) return;
+                    try {
+                        const result = await callAPI('getGhostRadioState', {
+                            gameCode: gameState.gameCode,
+                            playerId: gameState.playerId
+                        });
+
+                        if (result && result.success) {
+                            syncGhostRadioState(result.gameData || {}, result.playersData || {});
+                            // Re-render if viewing ghost radio
+                            if (document.getElementById('ghost-radio-screen').classList.contains('active')) {
+                                renderGhostRadio();
+                            }
+                        }
+                    } catch(e) {
+                        // Silent fail - ghost polling is non-critical
+                    }
+                }, POLL_INTERVAL * 2);
+            }
+        };
+
+        const _originalStopPolling_ghost = stopPolling;
+        stopPolling = function() {
+            _originalStopPolling_ghost();
+            if (window._ghostPollTimer) {
+                clearInterval(window._ghostPollTimer);
+                window._ghostPollTimer = null;
+            }
+        };
+
+        /**
+         * Hook into init to restore ghost radio state and set up nav visibility.
+         */
+        const _originalInit_ghost = init;
+        init = function() {
+            _originalInit_ghost();
+            initGhostRadioState();
+            updateGhostNavVisibility();
+        };
+
+        // ==================== SECRET HITLER (ORIGINAL) — NETWORKED ====================
+        let startMode = 'weimar';
+
+        function setStartMode(mode) {
+            startMode = mode;
+            document.getElementById('mode-weimar-btn').classList.toggle('active', mode === 'weimar');
+            document.getElementById('mode-sh-btn').classList.toggle('active', mode === 'secrethitler');
+            document.getElementById('weimar-start-actions').style.display = (mode === 'weimar') ? 'flex' : 'none';
+            document.getElementById('sh-start-actions').style.display = (mode === 'secrethitler') ? 'flex' : 'none';
+        }
+
+        // --- Supabase config (REPLACE THESE with your project's values) ---
+        const SUPABASE_URL = 'https://zdikhdkbyashqfokshwp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkaWtoZGtieWFzaHFmb2tzaHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNzczMzMsImV4cCI6MjA5MTk1MzMzM30.HKrH-0Dd03D2j9-rNnsl0FG2DBFD0XmDiRkks03pEr0';
+
+        let _sbClient = null;
+        function sb() {
+            if (_sbClient) return _sbClient;
+            if (!window.supabase || !window.supabase.createClient) {
+                throw new Error('Supabase JS failed to load');
+            }
+            _sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                realtime: { params: { eventsPerSecond: 10 } }
+            });
+            return _sbClient;
+        }
+
+        async function shApi(action, params) {
+            try {
+                const res = await fetch(SUPABASE_URL + '/functions/v1/sh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify(Object.assign({ action: action }, params || {}))
+                });
+                const data = await res.json();
+                return data;
+            } catch (e) {
+                return { success: false, error: 'Network error: ' + (e.message || e) };
+            }
+        }
+
+        // --- Networked client state ---
+        const shClient = {
+            gameCode: null,
+            playerId: null,
+            playerName: null,
+            isHost: false,
+            pendingAction: null, // 'create' | 'join'
+            pub: null,
+            priv: null,
+            channel: null,        // realtime channel
+            fallbackTimer: null,  // low-frequency poll fallback
+            roleAcknowledged: false,
+            lastPhase: null
+        };
+
+        const SH_FALLBACK_POLL_INTERVAL = 15000;
+
+        function shSaveSession() {
+            try {
+                localStorage.setItem('weimarSHSession', JSON.stringify({
+                    gameCode: shClient.gameCode,
+                    playerId: shClient.playerId,
+                    playerName: shClient.playerName,
+                    isHost: shClient.isHost,
+                    roleAcknowledged: shClient.roleAcknowledged
+                }));
+            } catch (e) {}
+        }
+
+        function shClearSession() {
+            try { localStorage.removeItem('weimarSHSession'); } catch (e) {}
+        }
+
+        function shLoadSession() {
+            try {
+                const s = localStorage.getItem('weimarSHSession');
+                if (!s) return null;
+                return JSON.parse(s);
+            } catch (e) { return null; }
+        }
+
+        async function shMaybeRestore() {
+            const s = shLoadSession();
+            if (!s || !s.gameCode || !s.playerId) return;
+            try {
+                const res = await shApi('shJoinGame', {
+                    gameCode: s.gameCode,
+                    playerName: s.playerName,
+                    rejoinId: s.playerId
+                });
+                if (res && res.success) {
+                    shClient.gameCode = res.gameCode;
+                    shClient.playerId = res.playerId;
+                    shClient.playerName = s.playerName;
+                    shClient.isHost = !!res.isHost;
+                    shClient.roleAcknowledged = !!s.roleAcknowledged;
+                    setStartMode('secrethitler');
+                    shSubscribeRealtime();
+                    await shPoll(true);
+                    return;
+                }
+            } catch (e) {}
+            shClearSession();
+        }
+
+        // --- Start-screen entry points ---
+        function shCreateNewGame() {
+            shClient.pendingAction = 'create';
+            shClient.gameCode = null;
+            document.getElementById('sh-name-sub').textContent = 'Host a new game';
+            document.getElementById('sh-player-name').value = shClient.playerName || '';
+            showScreen('sh-name-screen');
+            setTimeout(() => { document.getElementById('sh-player-name').focus(); }, 50);
+        }
+
+        function shJoinWithCode() {
+            const code = (document.getElementById('sh-join-code-input').value || '').trim().toUpperCase();
+            if (!code) { showStatus('Enter a game code', true); return; }
+            shClient.pendingAction = 'join';
+            shClient.gameCode = code;
+            document.getElementById('sh-name-sub').textContent = 'Joining ' + code;
+            document.getElementById('sh-player-name').value = shClient.playerName || '';
+            showScreen('sh-name-screen');
+            setTimeout(() => { document.getElementById('sh-player-name').focus(); }, 50);
+        }
+
+        async function shConfirmName() {
+            const name = (document.getElementById('sh-player-name').value || '').trim();
+            if (!name) { showStatus('Please enter your name', true); return; }
+            shClient.playerName = name;
+            if (shClient.pendingAction === 'create') {
+                try {
+                    showStatus('Creating game...');
+                    const res = await shApi('shCreateGame', { hostName: name });
+                    if (!res.success) throw new Error(res.error || 'Create failed');
+                    shClient.gameCode = res.gameCode;
+                    shClient.playerId = res.playerId;
+                    shClient.isHost = true;
+                    shClient.roleAcknowledged = false;
+                    shSaveSession();
+                    showStatus('Game created: ' + res.gameCode);
+                    shSubscribeRealtime();
+                    await shPoll(true);
+                } catch (e) {
+                    showStatus('Create failed: ' + e.message, true);
+                }
+            } else {
+                try {
+                    showStatus('Joining game...');
+                    const res = await shApi('shJoinGame', { gameCode: shClient.gameCode, playerName: name });
+                    if (!res.success) throw new Error(res.error || 'Join failed');
+                    shClient.gameCode = res.gameCode;
+                    shClient.playerId = res.playerId;
+                    shClient.isHost = !!res.isHost;
+                    shClient.roleAcknowledged = false;
+                    shSaveSession();
+                    showStatus(res.rejoined ? 'Rejoined ' + res.gameCode : 'Joined ' + res.gameCode);
+                    shSubscribeRealtime();
+                    await shPoll(true);
+                } catch (e) {
+                    showStatus('Join failed: ' + e.message, true);
+                }
+            }
+        }
+
+        // --- Realtime + fallback polling ---
+        function shSubscribeRealtime() {
+            shUnsubscribeRealtime();
+            if (!shClient.gameCode) return;
+            try {
+                const client = sb();
+                const ch = client.channel('sh:' + shClient.gameCode, { config: { broadcast: { self: false } } });
+                ch.on('broadcast', { event: 'update' }, () => { shPoll(false).catch(() => {}); });
+                ch.subscribe();
+                shClient.channel = ch;
+            } catch (e) {
+                // Realtime unavailable — fallback polling alone will cover it
+            }
+            shClient.fallbackTimer = setInterval(() => { shPoll(false).catch(() => {}); }, SH_FALLBACK_POLL_INTERVAL);
+        }
+
+        function shUnsubscribeRealtime() {
+            try { if (shClient.channel) { shClient.channel.unsubscribe(); shClient.channel = null; } } catch (e) {}
+            if (shClient.fallbackTimer) { clearInterval(shClient.fallbackTimer); shClient.fallbackTimer = null; }
+        }
+
+        async function shPoll(forceRender) {
+            if (!shClient.gameCode || !shClient.playerId) return;
+            try {
+                const res = await shApi('shGetState', { gameCode: shClient.gameCode, playerId: shClient.playerId });
+                if (!res.success) {
+                    showStatus(res.error || 'Sync failed', true);
+                    return;
+                }
+                shClient.pub = res.pub;
+                shClient.priv = res.priv;
+                shRender(forceRender === true);
+            } catch (e) {
+                // Silent on transient network errors
+            }
+        }
+
+        // --- Top-level renderer ---
+        function shRender(force) {
+            const pub = shClient.pub;
+            const priv = shClient.priv;
+            if (!pub) return;
+            const prevPhase = shClient.lastPhase;
+            shClient.lastPhase = pub.phase;
+            // Phase transitions
+            if (pub.phase === 'lobby') {
+                shRenderLobby();
+                return;
+            }
+            // If this player hasn't ack'd their role and phase is past lobby, show role screen
+            if (!shClient.roleAcknowledged && priv && priv.me && priv.me.role) {
+                shRenderRole();
+                return;
+            }
+            if (pub.phase === 'gameOver') {
+                shRenderEnd();
+                return;
+            }
+            shRenderPlay();
+        }
+
+        // --- Lobby renderer ---
+        function shRenderLobby() {
+            // Before showing, on first transition into lobby (e.g., after reset) reset ack flag
+            if (shClient.lastPhase !== 'lobby' && shClient.roleAcknowledged) {
+                shClient.roleAcknowledged = false;
+                shSaveSession();
+            }
+            const pub = shClient.pub;
+            document.getElementById('sh-lobby-code').textContent = shClient.gameCode;
+            const list = document.getElementById('sh-lobby-players');
+            list.innerHTML = '';
+            (pub.players || []).forEach((p, i) => {
+                const li = document.createElement('li');
+                li.className = 'sh-player-pick';
+                li.innerHTML = `<span class="sh-num">${i + 1}</span> ${p.name}${p.isHost ? ' <span style="margin-left:auto;font-size:0.7rem;color:var(--brown-light);">HOST</span>' : ''}`;
+                list.appendChild(li);
+            });
+            document.getElementById('sh-lobby-count').textContent = (pub.players || []).length;
+            const n = (pub.players || []).length;
+            const statusEl = document.getElementById('sh-lobby-status');
+            if (n < 5) statusEl.textContent = 'Need ' + (5 - n) + ' more player' + (5 - n === 1 ? '' : 's') + ' (min 5, max 10).';
+            else if (n > 10) statusEl.textContent = 'Too many players (max 10).';
+            else statusEl.textContent = 'Ready. Host can start.';
+            const isHost = shClient.isHost;
+            const startBtn = document.getElementById('sh-lobby-start-btn');
+            if (isHost) {
+                startBtn.style.display = '';
+                startBtn.disabled = !(n >= 5 && n <= 10);
+            } else {
+                startBtn.style.display = 'none';
+            }
+            // QR (only for host)
+            const qrSec = document.getElementById('sh-qr-section');
+            if (isHost && shClient.gameCode) {
+                qrSec.style.display = '';
+                const qrEl = document.getElementById('sh-qr-code');
+                if (!qrEl.dataset.drawnFor || qrEl.dataset.drawnFor !== shClient.gameCode) {
+                    qrEl.innerHTML = '';
+                    try {
+                        new QRCode(qrEl, { text: location.origin + location.pathname + '?shjoin=' + shClient.gameCode, width: 140, height: 140 });
+                        qrEl.dataset.drawnFor = shClient.gameCode;
+                    } catch (e) {}
+                }
+            } else {
+                qrSec.style.display = 'none';
+            }
+            const active = document.querySelector('.screen.active');
+            if (!active || active.id !== 'sh-lobby-screen') {
+                showScreen('sh-lobby-screen');
+            }
+        }
+
+        async function shHostStart() {
+            try {
+                showStatus('Starting game...');
+                const res = await shApi('shStartGame', { gameCode: shClient.gameCode, playerId: shClient.playerId });
+                if (!res.success) throw new Error(res.error || 'Start failed');
+                shClient.roleAcknowledged = false;
+                shSaveSession();
+                await shPoll(true);
+            } catch (e) {
+                showStatus('Start failed: ' + e.message, true);
+            }
+        }
+
+        function shCopyCode() {
+            if (!shClient.gameCode) return;
+            navigator.clipboard.writeText(shClient.gameCode).then(() => showStatus('Code copied!'), () => showStatus('Copy failed', true));
+        }
+
+        // --- Role reveal renderer ---
+        function shRenderRole() {
+            const priv = shClient.priv;
+            const pub = shClient.pub;
+            if (!priv || !priv.me || !priv.me.role) return;
+            const role = priv.me.role;
+            const party = priv.me.party;
+            const titleEl = document.getElementById('sh-role-title');
+            const bannerEl = document.getElementById('sh-role-banner');
+            const textEl = document.getElementById('sh-role-text');
+            const teamWrap = document.getElementById('sh-role-team');
+            const teamList = document.getElementById('sh-role-team-list');
+            titleEl.textContent = priv.me.name + "'s Role";
+            bannerEl.className = 'sh-banner ' + (party === 'liberal' ? 'lib' : 'fas');
+            if (role === 'liberal') {
+                bannerEl.textContent = 'LIBERAL';
+                textEl.textContent = 'You are on the Liberal team. Win by enacting 5 Liberal policies or executing Hitler.';
+            } else if (role === 'fascist') {
+                bannerEl.textContent = 'FASCIST';
+                textEl.textContent = 'You are on the Fascist team. Win by enacting 6 Fascist policies or getting Hitler elected Chancellor after 3 Fascist policies.';
+            } else if (role === 'hitler') {
+                bannerEl.textContent = 'HITLER';
+                textEl.textContent = 'You are Hitler. You win with the Fascists. Be elected Chancellor after 3 Fascist policies to win instantly — but do not get executed.';
+            }
+            teamWrap.style.display = 'none';
+            teamList.innerHTML = '';
+            if (priv.fascistTeam && priv.fascistTeam.length) {
+                teamWrap.style.display = '';
+                priv.fascistTeam.forEach(t => {
+                    const li = document.createElement('li');
+                    li.className = (t.role === 'hitler') ? 'hitler' : '';
+                    li.textContent = t.name + (t.role === 'hitler' ? ' (Hitler)' : ' (Fascist)');
+                    teamList.appendChild(li);
+                });
+            }
+            // Add ack button once
+            const active = document.querySelector('.screen.active');
+            if (!active || active.id !== 'sh-role-screen') {
+                showScreen('sh-role-screen');
+            }
+            // Append ack button if not present
+            const container = document.querySelector('#sh-role-screen .sh-container');
+            if (!document.getElementById('sh-role-ack-btn')) {
+                const btn = document.createElement('button');
+                btn.id = 'sh-role-ack-btn';
+                btn.className = 'sh-btn';
+                btn.textContent = "I've read my role";
+                btn.onclick = () => {
+                    shClient.roleAcknowledged = true;
+                    shSaveSession();
+                    shRender(true);
+                };
+                container.appendChild(btn);
+            }
+        }
+
+        // --- Play renderer (handles nomination, voting, legislative, power, etc.) ---
+        function shRenderPlay() {
+            const pub = shClient.pub;
+            const priv = shClient.priv;
+            const active = document.querySelector('.screen.active');
+            if (!active || active.id !== 'sh-play-screen') {
+                showScreen('sh-play-screen');
+            }
+            // Remove role ack button if present (we're done with role screen)
+            const ackBtn = document.getElementById('sh-role-ack-btn');
+            if (ackBtn) ackBtn.remove();
+            // Board
+            const board = document.getElementById('sh-play-board');
+            board.innerHTML = shRenderBoardHtml(pub);
+            // Meta
+            const presPlayer = (pub.players || []).find(p => p.id === pub.presidentId);
+            const chanPlayer = (pub.players || []).find(p => p.id === pub.chancellorId);
+            const aliveCount = (pub.players || []).filter(p => p.alive).length;
+            document.getElementById('sh-play-meta').textContent =
+                'Deck: ' + pub.deckCount + ' · Discard: ' + pub.discardCount +
+                ' · Election tracker: ' + pub.electionTracker + '/3' +
+                ' · Alive: ' + aliveCount;
+            const banner = document.getElementById('sh-play-banner');
+            banner.style.display = 'none';
+            const status = document.getElementById('sh-play-status');
+            const actions = document.getElementById('sh-play-actions');
+            actions.innerHTML = '';
+            // Reset button for host
+            document.getElementById('sh-reset-btn').style.display = shClient.isHost ? '' : 'none';
+            // Show last vote result (if just resolved)
+            if (pub.voteResult && pub.phase !== 'voting') {
+                const vr = pub.voteResult;
+                if (pub.phase === 'nomination' && !vr.passed) {
+                    banner.style.display = '';
+                    banner.className = 'sh-banner fas';
+                    let msg = 'Last election FAILED (' + vr.jas + '/' + vr.total + ' Ja).';
+                    if (vr.chaosPolicy) msg += ' Chaos! Top policy auto-enacted: ' + (vr.chaosPolicy === 'lib' ? 'LIBERAL' : 'FASCIST') + '.';
+                    banner.textContent = msg;
+                }
+            }
+            // Phase-specific
+            if (pub.phase === 'nomination') {
+                status.innerHTML = 'President <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong> is nominating a Chancellor.';
+                if (priv && priv.me && priv.me.id === pub.presidentId && priv.me.alive) {
+                    const wrap = document.createElement('div');
+                    const hdr = document.createElement('div');
+                    hdr.className = 'sh-meta';
+                    hdr.textContent = 'Choose your Chancellor:';
+                    wrap.appendChild(hdr);
+                    (pub.players || []).forEach(p => {
+                        if (p.id === priv.me.id) return;
+                        if (!p.alive) return;
+                        const btn = document.createElement('button');
+                        btn.className = 'sh-player-pick';
+                        btn.textContent = p.name;
+                        const ineligible = shIsIneligibleChancellor(pub, priv.me.id, p.id);
+                        if (p.id === pub.lastElectedChancellor) { btn.classList.add('disabled', 'last-chan'); }
+                        if (p.id === pub.lastElectedPresident) { btn.classList.add('last-pres'); if (ineligible) btn.classList.add('disabled'); }
+                        if (ineligible) btn.classList.add('disabled');
+                        btn.onclick = () => shDoNominate(p.id);
+                        wrap.appendChild(btn);
+                    });
+                    actions.appendChild(wrap);
+                }
+            } else if (pub.phase === 'voting') {
+                status.innerHTML = 'Election: <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong> (Pres) &middot; <strong>' + (chanPlayer ? chanPlayer.name : '?') + '</strong> (Chan)';
+                const already = priv && typeof priv.myVote !== 'undefined';
+                const canVote = priv && priv.me && priv.me.alive;
+                if (canVote && !already) {
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.gap = '10px';
+                    row.style.margin = '12px 0';
+                    const ja = document.createElement('button');
+                    ja.className = 'sh-btn lib-blue';
+                    ja.textContent = 'JA';
+                    ja.onclick = () => shDoVote(true);
+                    const nein = document.createElement('button');
+                    nein.className = 'sh-btn fas-red';
+                    nein.textContent = 'NEIN';
+                    nein.onclick = () => shDoVote(false);
+                    row.appendChild(ja);
+                    row.appendChild(nein);
+                    actions.appendChild(row);
+                }
+                // Tally (voted marker, not actual vote)
+                const tally = document.createElement('div');
+                tally.className = 'sh-vote-tally';
+                const voted = new Set(pub.votesCast || []);
+                (pub.players || []).filter(p => p.alive).forEach(p => {
+                    const chip = document.createElement('span');
+                    chip.className = 'sh-vote-chip ' + (voted.has(p.id) ? 'ja' : 'pending');
+                    chip.textContent = p.name + (voted.has(p.id) ? ' ✓' : ' …');
+                    tally.appendChild(chip);
+                });
+                actions.appendChild(tally);
+                if (canVote && already) {
+                    const note = document.createElement('div');
+                    note.className = 'sh-meta';
+                    note.textContent = 'You voted ' + (priv.myVote ? 'JA' : 'NEIN') + '. Waiting for others...';
+                    actions.appendChild(note);
+                }
+            } else if (pub.phase === 'legislativePres') {
+                status.innerHTML = 'President <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong> is reviewing 3 policies.';
+                if (priv && priv.me && priv.me.id === pub.presidentId && priv.drawnPolicies) {
+                    const wrap = document.createElement('div');
+                    const note = document.createElement('div');
+                    note.className = 'sh-meta';
+                    note.textContent = 'Tap a card to DISCARD it. The other two go to the Chancellor.';
+                    wrap.appendChild(note);
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.justifyContent = 'center';
+                    row.style.flexWrap = 'wrap';
+                    priv.drawnPolicies.forEach((card, i) => {
+                        const c = document.createElement('div');
+                        c.className = 'sh-policy-card ' + card;
+                        c.textContent = card === 'lib' ? 'LIBERAL' : 'FASCIST';
+                        c.onclick = () => shDoPresDiscard(i);
+                        row.appendChild(c);
+                    });
+                    wrap.appendChild(row);
+                    actions.appendChild(wrap);
+                }
+            } else if (pub.phase === 'legislativeChan') {
+                status.innerHTML = 'Chancellor <strong>' + (chanPlayer ? chanPlayer.name : '?') + '</strong> is choosing which policy to enact.';
+                if (priv && priv.me && priv.me.id === pub.chancellorId && priv.chancellorPolicies) {
+                    const wrap = document.createElement('div');
+                    const note = document.createElement('div');
+                    note.className = 'sh-meta';
+                    note.textContent = 'Tap a card to ENACT it.';
+                    wrap.appendChild(note);
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.justifyContent = 'center';
+                    row.style.flexWrap = 'wrap';
+                    priv.chancellorPolicies.forEach((card, i) => {
+                        const c = document.createElement('div');
+                        c.className = 'sh-policy-card ' + card;
+                        c.textContent = card === 'lib' ? 'LIBERAL' : 'FASCIST';
+                        c.onclick = () => shDoChanEnact(i);
+                        row.appendChild(c);
+                    });
+                    wrap.appendChild(row);
+                    if (pub.fascistPolicies >= 5 && !pub.vetoProposed) {
+                        const vbtn = document.createElement('button');
+                        vbtn.className = 'sh-btn danger';
+                        vbtn.textContent = 'Propose Veto';
+                        vbtn.onclick = () => shDoProposeVeto();
+                        wrap.appendChild(vbtn);
+                    }
+                    if (pub.vetoProposed) {
+                        const info = document.createElement('div');
+                        info.className = 'sh-meta';
+                        info.textContent = 'Veto proposed. Waiting for President to respond.';
+                        wrap.appendChild(info);
+                    }
+                    actions.appendChild(wrap);
+                }
+                if (pub.vetoProposed && priv && priv.me && priv.me.id === pub.presidentId) {
+                    const wrap = document.createElement('div');
+                    const q = document.createElement('div');
+                    q.className = 'sh-text';
+                    q.textContent = 'Chancellor proposes VETO. Consent?';
+                    wrap.appendChild(q);
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.gap = '10px';
+                    const ok = document.createElement('button');
+                    ok.className = 'sh-btn lib-blue';
+                    ok.textContent = 'Consent (Veto)';
+                    ok.onclick = () => shDoRespondVeto(true);
+                    const no = document.createElement('button');
+                    no.className = 'sh-btn fas-red';
+                    no.textContent = 'Refuse';
+                    no.onclick = () => shDoRespondVeto(false);
+                    row.appendChild(ok);
+                    row.appendChild(no);
+                    wrap.appendChild(row);
+                    actions.appendChild(wrap);
+                }
+            } else if (pub.phase === 'power') {
+                const pwLabel = ({peek:'Policy Peek', investigate:'Investigate Loyalty', specialElection:'Special Election', execute:'Execute'})[pub.pendingPower] || 'Executive Power';
+                status.innerHTML = pwLabel + ' — President <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong>';
+                if (priv && priv.me && priv.me.id === pub.presidentId) {
+                    const wrap = document.createElement('div');
+                    if (pub.pendingPower === 'peek' && priv.peekResult) {
+                        const note = document.createElement('div');
+                        note.className = 'sh-meta';
+                        note.textContent = 'Top 3 policies (next to be drawn, in order):';
+                        wrap.appendChild(note);
+                        const row = document.createElement('div');
+                        row.style.display = 'flex';
+                        row.style.justifyContent = 'center';
+                        row.style.flexWrap = 'wrap';
+                        priv.peekResult.forEach(card => {
+                            const c = document.createElement('div');
+                            c.className = 'sh-policy-card ' + card;
+                            c.textContent = card === 'lib' ? 'LIBERAL' : 'FASCIST';
+                            row.appendChild(c);
+                        });
+                        wrap.appendChild(row);
+                        const ack = document.createElement('button');
+                        ack.className = 'sh-btn';
+                        ack.textContent = 'Done';
+                        ack.onclick = () => shDoAckPower();
+                        wrap.appendChild(ack);
+                    } else if (pub.pendingPower === 'investigate') {
+                        if (priv.investigateResult) {
+                            const banner = document.createElement('div');
+                            banner.className = 'sh-banner ' + (priv.investigateResult.party === 'liberal' ? 'lib' : 'fas');
+                            banner.textContent = priv.investigateResult.name + ' — ' + (priv.investigateResult.party === 'liberal' ? 'LIBERAL' : 'FASCIST');
+                            wrap.appendChild(banner);
+                            const ack = document.createElement('button');
+                            ack.className = 'sh-btn';
+                            ack.textContent = 'Done';
+                            ack.onclick = () => shDoAckPower();
+                            wrap.appendChild(ack);
+                        } else {
+                            const note = document.createElement('div');
+                            note.className = 'sh-meta';
+                            note.textContent = 'Investigate a player — see their party (Hitler appears as Fascist).';
+                            wrap.appendChild(note);
+                            (pub.players || []).forEach(p => {
+                                if (p.id === priv.me.id) return;
+                                if (!p.alive) return;
+                                const btn = document.createElement('button');
+                                btn.className = 'sh-player-pick';
+                                btn.textContent = p.name;
+                                if (shPlayerInvestigated(pub, p.id)) btn.classList.add('disabled', 'investigated');
+                                else btn.onclick = () => shDoUsePower(p.id);
+                                wrap.appendChild(btn);
+                            });
+                        }
+                    } else if (pub.pendingPower === 'specialElection') {
+                        const note = document.createElement('div');
+                        note.className = 'sh-meta';
+                        note.textContent = 'Choose any other player to be the next President.';
+                        wrap.appendChild(note);
+                        (pub.players || []).forEach(p => {
+                            if (p.id === priv.me.id) return;
+                            if (!p.alive) return;
+                            const btn = document.createElement('button');
+                            btn.className = 'sh-player-pick';
+                            btn.textContent = p.name;
+                            btn.onclick = () => shDoUsePower(p.id);
+                            wrap.appendChild(btn);
+                        });
+                    } else if (pub.pendingPower === 'execute') {
+                        const note = document.createElement('div');
+                        note.className = 'sh-meta';
+                        note.textContent = 'Execute a player. If they are Hitler, Liberals win.';
+                        wrap.appendChild(note);
+                        (pub.players || []).forEach(p => {
+                            if (p.id === priv.me.id) return;
+                            if (!p.alive) return;
+                            const btn = document.createElement('button');
+                            btn.className = 'sh-player-pick';
+                            btn.textContent = p.name;
+                            btn.onclick = () => shDoUsePower(p.id);
+                            wrap.appendChild(btn);
+                        });
+                    }
+                    actions.appendChild(wrap);
+                }
+            }
+        }
+
+        function shRenderBoardHtml(pub) {
+            const n = (pub.players || []).length;
+            const fasPowers = shFascistPowerLabels(n);
+            let html = '';
+            html += '<div class="sh-track lib"><div class="sh-track-label">Liberal</div><div class="sh-track-cells">';
+            for (let i = 0; i < 5; i++) {
+                html += '<div class="sh-track-cell' + (i < pub.liberalPolicies ? ' filled' : '') + '">' + (i + 1) + '</div>';
+            }
+            html += '</div></div>';
+            html += '<div class="sh-track fas"><div class="sh-track-label">Fascist</div><div class="sh-track-cells">';
+            for (let i = 0; i < 6; i++) {
+                const pw = fasPowers[i];
+                html += '<div class="sh-track-cell' + (i < pub.fascistPolicies ? ' filled' : '') + '" title="' + (pw || '') + '">' + (i + 1) + (pw ? '<span class="sh-track-power-marker" data-pw="' + pw + '"></span>' : '') + '</div>';
+            }
+            html += '</div></div>';
+            return html;
+        }
+
+        function shFascistPowerLabels(n) {
+            if (n <= 6) return [null, null, 'peek', 'execute', 'execute', null];
+            if (n <= 8) return [null, 'investigate', 'specialElection', 'execute', 'execute', null];
+            return ['investigate', 'investigate', 'specialElection', 'execute', 'execute', null];
+        }
+
+        function shIsIneligibleChancellor(pub, presId, targetId) {
+            if (presId === targetId) return true;
+            const aliveCount = (pub.players || []).filter(p => p.alive).length;
+            if (targetId === pub.lastElectedChancellor) return true;
+            if (aliveCount > 5 && targetId === pub.lastElectedPresident) return true;
+            return false;
+        }
+
+        function shPlayerInvestigated(pub, playerId) {
+            // Public players list doesn't include investigation flag; rely on priv if needed.
+            // Fall back to false — server will reject if already investigated.
+            return false;
+        }
+
+        // --- Action calls ---
+        async function shCallAction(action, extra) {
+            try {
+                const body = Object.assign({ gameCode: shClient.gameCode, playerId: shClient.playerId }, extra || {});
+                const res = await shApi(action, body);
+                if (!res.success) { showStatus(res.error || 'Action failed', true); return false; }
+                await shPoll(true);
+                return true;
+            } catch (e) {
+                showStatus('Network error: ' + e.message, true);
+                return false;
+            }
+        }
+
+        function shDoNominate(chancellorId) { return shCallAction('shNominate', { chancellorId: chancellorId }); }
+        function shDoVote(v) { return shCallAction('shVote', { vote: !!v }); }
+        function shDoPresDiscard(i) { return shCallAction('shPresidentDiscard', { discardIndex: i }); }
+        function shDoChanEnact(i) { return shCallAction('shChancellorEnact', { enactIndex: i }); }
+        function shDoProposeVeto() { return shCallAction('shProposeVeto', {}); }
+        function shDoRespondVeto(agree) { return shCallAction('shRespondVeto', { agree: !!agree }); }
+        function shDoUsePower(targetId) { return shCallAction('shUsePower', { targetId: targetId }); }
+        function shDoAckPower() { return shCallAction('shAckPower', {}); }
+
+        // --- End-of-game ---
+        function shRenderEnd() {
+            const pub = shClient.pub;
+            const active = document.querySelector('.screen.active');
+            if (!active || active.id !== 'sh-end-screen') {
+                showScreen('sh-end-screen');
+            }
+            document.getElementById('sh-end-title').textContent = 'Game Over';
+            const banner = document.getElementById('sh-end-banner');
+            if (pub.winner === 'liberal') { banner.className = 'sh-banner lib'; banner.textContent = 'LIBERALS WIN'; }
+            else if (pub.winner === 'fascist') { banner.className = 'sh-banner fas'; banner.textContent = 'FASCISTS WIN'; }
+            else { banner.className = 'sh-banner'; banner.textContent = '—'; }
+            document.getElementById('sh-end-detail').textContent = pub.winReason || '';
+            const roles = document.getElementById('sh-end-roles');
+            roles.innerHTML = '';
+            (pub.allRoles || []).forEach(r => {
+                const li = document.createElement('li');
+                if (r.role === 'hitler') li.className = 'hitler';
+                const label = r.role ? (r.role === 'hitler' ? 'Hitler' : (r.role === 'fascist' ? 'Fascist' : 'Liberal')) : '';
+                li.textContent = r.name + ' — ' + label + (r.alive ? '' : ' (executed)');
+                roles.appendChild(li);
+            });
+            document.getElementById('sh-end-new-btn').style.display = shClient.isHost ? '' : 'none';
+        }
+
+        async function shHostResetToLobby() {
+            try {
+                const res = await shApi('shResetGame', { gameCode: shClient.gameCode, playerId: shClient.playerId });
+                if (!res.success) throw new Error(res.error || 'Reset failed');
+                shClient.roleAcknowledged = false;
+                shSaveSession();
+                await shPoll(true);
+            } catch (e) {
+                showStatus('Reset failed: ' + e.message, true);
+            }
+        }
+
+        function shConfirmReset() {
+            if (!shClient.isHost) return;
+            if (confirm('Reset the game to the lobby? All progress will be lost.')) {
+                shHostResetToLobby();
+            }
+        }
+
+        // --- Misc ---
+        function shShowPlayers() {
+            const wrap = document.getElementById('sh-players-detail');
+            const pub = shClient.pub;
+            if (!pub) return;
+            wrap.innerHTML = '';
+            (pub.players || []).forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'sh-player-pick';
+                const extras = [];
+                if (!p.alive) extras.push('DEAD');
+                if (pub.lastElectedPresident === p.id) extras.push('Last Pres');
+                if (pub.lastElectedChancellor === p.id) extras.push('Last Chan');
+                if (pub.presidentId === p.id) extras.push('Current Pres');
+                if (pub.chancellorId === p.id) extras.push('Current Chan');
+                div.innerHTML = p.name + (extras.length ? ' <span style="margin-left:auto;font-size:0.7rem;color:var(--brown-light);">' + extras.join(' · ') + '</span>' : '');
+                div.style.cursor = 'default';
+                wrap.appendChild(div);
+            });
+            showScreen('sh-players-screen');
+        }
+
+        function shBackToPlay() {
+            const pub = shClient.pub;
+            if (!pub) { showScreen('start-screen'); return; }
+            if (pub.phase === 'lobby') showScreen('sh-lobby-screen');
+            else if (pub.phase === 'gameOver') showScreen('sh-end-screen');
+            else showScreen('sh-play-screen');
+        }
+
+        function shLeave() {
+            if (confirm('Leave the Secret Hitler game?')) {
+                shUnsubscribeRealtime();
+                shClearSession();
+                shClient.gameCode = null;
+                shClient.playerId = null;
+                shClient.playerName = null;
+                shClient.isHost = false;
+                shClient.pub = null;
+                shClient.priv = null;
+                shClient.roleAcknowledged = false;
+                shClient.lastPhase = null;
+                showScreen('start-screen');
+            }
+        }
+
+        // Auto-join via ?shjoin=CODE URL param (from QR)
+        (function shHandleUrlJoin() {
+            try {
+                const qs = new URLSearchParams(location.search);
+                const code = qs.get('shjoin');
+                if (code) {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        setStartMode('secrethitler');
+                        const input = document.getElementById('sh-join-code-input');
+                        if (input) input.value = code.toUpperCase();
+                    });
+                }
+            } catch (e) {}
+        })();
+
+        // Hook into init to restore SH session
+        const _originalInit_sh = init;
+        init = function() {
+            _originalInit_sh();
+            shMaybeRestore().catch(() => {});
+        };
+
 
         init();
     </script>

@@ -636,3 +636,4 @@ function testSetup() {
   Logger.log('Setup complete! Sheets created: ' + GAMES_SHEET + ', ' + PLAYERS_SHEET);
   Logger.log('Available roles: ' + ROLES.join(', '));
 }
+
