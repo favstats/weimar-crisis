@@ -6413,9 +6413,12 @@
                 li.innerHTML = num + name + badge;
                 if (isHostLocal && !p.isHost) {
                     const kick = document.createElement('button');
-                    kick.className = 'sh-btn danger';
-                    kick.textContent = 'Kick';
-                    kick.style.cssText = 'margin-left:auto; width:auto; padding:2px 10px; font-size:0.7rem; box-shadow:none;';
+                    kick.textContent = '×';
+                    kick.title = 'Kick ' + p.name;
+                    kick.setAttribute('aria-label', 'Kick ' + p.name);
+                    kick.style.cssText = 'margin-left:auto; width:20px; height:20px; padding:0; line-height:18px; font-size:1rem; font-family:"Bebas Neue",sans-serif; color:var(--brown-light); background:transparent; border:1px solid var(--brown-light); border-radius:50%; cursor:pointer; opacity:0.55; transition:opacity 0.15s, color 0.15s, border-color 0.15s;';
+                    kick.onmouseenter = () => { kick.style.opacity = '1'; kick.style.color = 'var(--fascist-red)'; kick.style.borderColor = 'var(--fascist-red)'; };
+                    kick.onmouseleave = () => { kick.style.opacity = '0.55'; kick.style.color = 'var(--brown-light)'; kick.style.borderColor = 'var(--brown-light)'; };
                     kick.onclick = (e) => {
                         e.stopPropagation();
                         if (confirm('Kick ' + p.name + ' from the lobby?')) {
