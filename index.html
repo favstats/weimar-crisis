@@ -6337,6 +6337,25 @@
                     showStatus(res.error || 'Sync failed', true);
                     return;
                 }
+                // If we used to be in the game and now we're not, we got kicked.
+                const wasInGame = shClient.priv && shClient.priv.me;
+                const nowInGame = res.priv && res.priv.me;
+                if (wasInGame && !nowInGame) {
+                    shClient.pub = null;
+                    shClient.priv = null;
+                    shUnsubscribeRealtime();
+                    shClearSession();
+                    shClient.gameCode = null;
+                    shClient.playerId = null;
+                    shClient.isHost = false;
+                    shClient.bots = null;
+                    shClient.roleAcknowledged = false;
+                    shClient.lastPhase = null;
+                    shUpdateUrl(null);
+                    showStatus('You were removed from the game.', true);
+                    showScreen('start-screen');
+                    return;
+                }
                 shClient.pub = res.pub;
                 shClient.priv = res.priv;
                 shRender(forceRender === true);
@@ -6382,10 +6401,29 @@
             document.getElementById('sh-lobby-code').textContent = shClient.gameCode;
             const list = document.getElementById('sh-lobby-players');
             list.innerHTML = '';
+            const isHostLocal = shClient.isHost;
             (pub.players || []).forEach((p, i) => {
                 const li = document.createElement('li');
                 li.className = 'sh-player-pick';
-                li.innerHTML = `<span class="sh-num">${i + 1}</span> ${p.name}${p.isHost ? ' <span style="margin-left:auto;font-size:0.7rem;color:var(--brown-light);">HOST</span>' : ''}`;
+                const num = `<span class="sh-num">${i + 1}</span>`;
+                const name = ` ${p.name}`;
+                const badge = p.isHost
+                    ? ' <span style="margin-left:auto;font-size:0.7rem;color:var(--brown-light);">HOST</span>'
+                    : '';
+                li.innerHTML = num + name + badge;
+                if (isHostLocal && !p.isHost) {
+                    const kick = document.createElement('button');
+                    kick.className = 'sh-btn danger';
+                    kick.textContent = 'Kick';
+                    kick.style.cssText = 'margin-left:auto; width:auto; padding:2px 10px; font-size:0.7rem; box-shadow:none;';
+                    kick.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm('Kick ' + p.name + ' from the lobby?')) {
+                            shDoKick(p.id);
+                        }
+                    };
+                    li.appendChild(kick);
+                }
                 list.appendChild(li);
             });
             document.getElementById('sh-lobby-count').textContent = (pub.players || []).length;
@@ -7232,6 +7270,7 @@
         function shDoRespondVeto(agree) { return shCallAction('shRespondVeto', { agree: !!agree }); }
         function shDoUsePower(targetId) { return shCallAction('shUsePower', { targetId: targetId }); }
         function shDoAckPower() { return shCallAction('shAckPower', {}); }
+        function shDoKick(targetId) { return shCallAction('shKickPlayer', { targetId: targetId }); }
         function shDoUseExpansionPower(targetId) { return shCallAction('shUseExpansionPower', { targetId: targetId }); }
 
         function shRenderUsePowerUI(container, pub, priv) {

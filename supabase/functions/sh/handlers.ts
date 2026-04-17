@@ -678,6 +678,21 @@ export async function shUseExpansionPower(store: Store, p: any) {
   return { success: true };
 }
 
+export async function shKickPlayer(store: Store, p: any) {
+  const game = await store.load(p.gameCode);
+  if (!game) return { success: false, error: "Game not found" };
+  const s = game.state;
+  if (s.hostId !== p.playerId) return { success: false, error: "Only host can kick" };
+  if (s.phase !== "lobby") return { success: false, error: "Can only kick in the lobby" };
+  if (!p.targetId) return { success: false, error: "Target required" };
+  if (p.targetId === s.hostId) return { success: false, error: "Host cannot kick themselves" };
+  const idx = s.players.findIndex((x: any) => x.id === p.targetId);
+  if (idx === -1) return { success: false, error: "Player not in this game" };
+  s.players.splice(idx, 1);
+  await saveGame(store, game.code, s);
+  return { success: true };
+}
+
 export async function shResetGame(store: Store, p: any) {
   const game = await store.load(p.gameCode);
   if (!game) return { success: false, error: "Game not found" };
@@ -739,6 +754,7 @@ export async function dispatch(store: Store, action: string, body: any) {
     case "shUsePower": return await shUsePower(store, body);
     case "shAckPower": return await shAckPower(store, body);
     case "shUseExpansionPower": return await shUseExpansionPower(store, body);
+    case "shKickPlayer": return await shKickPlayer(store, body);
     case "shResetGame": return await shResetGame(store, body);
     default: return { success: false, error: "Unknown action: " + action };
   }

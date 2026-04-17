@@ -10,7 +10,7 @@ import {
   shPresidentDiscard, shChancellorEnact,
   shProposeVeto, shRespondVeto,
   shUsePower, shAckPower,
-  shUseExpansionPower, shResetGame,
+  shUseExpansionPower, shKickPlayer, shResetGame,
   dispatch,
 } from "./handlers.ts";
 
@@ -643,6 +643,68 @@ Deno.test("hitler elected chancellor after 3 fascist policies → instant fascis
 // ============================================================
 // Reset
 // ============================================================
+// ============================================================
+// Kick
+// ============================================================
+Deno.test("kick: host removes a player from the lobby", async () => {
+  const { store, code, hostId, ids } = await setupLobby(["H", "B", "C", "D", "E"]);
+  const targetId = ids[2];
+  const r = await shKickPlayer(store, { gameCode: code, playerId: hostId, targetId });
+  assert(r.success);
+  const s = await getState(store, code, hostId);
+  assertEquals(s.pub.players.length, 4);
+  assertEquals(s.pub.players.find((p: any) => p.id === targetId), undefined);
+});
+
+Deno.test("kick: non-host rejected", async () => {
+  const { store, code, ids } = await setupLobby(["H", "B", "C", "D", "E"]);
+  const r = await shKickPlayer(store, { gameCode: code, playerId: ids[1], targetId: ids[2] });
+  assertFalse(r.success);
+  assertEquals(r.error, "Only host can kick");
+});
+
+Deno.test("kick: host cannot kick themselves", async () => {
+  const { store, code, hostId } = await setupLobby(["H", "B", "C", "D", "E"]);
+  const r = await shKickPlayer(store, { gameCode: code, playerId: hostId, targetId: hostId });
+  assertFalse(r.success);
+  assertEquals(r.error, "Host cannot kick themselves");
+});
+
+Deno.test("kick: rejected outside lobby phase", async () => {
+  const { store, code, hostId, ids } = await setupLobby(["H", "B", "C", "D", "E"]);
+  await startGame(store, code, hostId);
+  const r = await shKickPlayer(store, { gameCode: code, playerId: hostId, targetId: ids[1] });
+  assertFalse(r.success);
+  assertEquals(r.error, "Can only kick in the lobby");
+});
+
+Deno.test("kick: missing target rejected", async () => {
+  const { store, code, hostId } = await setupLobby(["H", "B", "C", "D", "E"]);
+  const r = await shKickPlayer(store, { gameCode: code, playerId: hostId });
+  assertFalse(r.success);
+  assertEquals(r.error, "Target required");
+});
+
+Deno.test("kick: unknown target rejected", async () => {
+  const { store, code, hostId } = await setupLobby(["H", "B", "C", "D", "E"]);
+  const r = await shKickPlayer(store, { gameCode: code, playerId: hostId, targetId: "p_ghost" });
+  assertFalse(r.success);
+  assertEquals(r.error, "Player not in this game");
+});
+
+Deno.test("kick: game not found", async () => {
+  const store = memoryStore();
+  const r = await shKickPlayer(store, { gameCode: "NOPE", playerId: "x", targetId: "y" });
+  assertFalse(r.success);
+  assertEquals(r.error, "Game not found");
+});
+
+Deno.test("kick: dispatch routes to kick handler", async () => {
+  const { store, code, hostId, ids } = await setupLobby(["H", "B", "C", "D", "E"]);
+  const r = await dispatch(store, "shKickPlayer", { gameCode: code, playerId: hostId, targetId: ids[1] });
+  assert(r.success);
+});
+
 Deno.test("reset: non-host rejected; host resets to lobby", async () => {
   const { store, code, hostId, ids } = await setupLobby(["H", "B", "C", "D", "E"]);
   await startGame(store, code, hostId);
