@@ -1,0 +1,14 @@
+{
+  "name": "weimar-crisis",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "test:e2e:ui": "playwright test --ui",
+    "serve": "python3 -m http.server 8765"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
