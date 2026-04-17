@@ -2859,6 +2859,7 @@
             <div class="sh-meta" id="sh-lobby-status">Need 5–10 players to begin.</div>
             <button class="sh-btn" id="sh-lobby-start-btn" onclick="shHostStart()" style="display:none;" disabled>Start Game</button>
             <button class="sh-btn alt" onclick="shCopyCode()">Copy Game Code</button>
+            <button class="sh-btn alt" id="sh-lobby-sim-btn" onclick="shSimulateBots()" style="display:none; font-size: 0.8rem;">+4 Test Bots (dev)</button>
         </div>
     </div>
 
@@ -5739,7 +5740,8 @@
                     playerId: shClient.playerId,
                     playerName: shClient.playerName,
                     isHost: shClient.isHost,
-                    roleAcknowledged: shClient.roleAcknowledged
+                    roleAcknowledged: shClient.roleAcknowledged,
+                    bots: shClient.bots || null
                 }));
             } catch (e) {}
         }
@@ -5771,6 +5773,7 @@
                     shClient.playerName = s.playerName;
                     shClient.isHost = !!res.isHost;
                     shClient.roleAcknowledged = !!s.roleAcknowledged;
+                    shClient.bots = s.bots || null;
                     setStartMode('secrethitler');
                     shSubscribeRealtime();
                     await shPoll(true);
@@ -5884,6 +5887,8 @@
             if (!pub) return;
             const prevPhase = shClient.lastPhase;
             shClient.lastPhase = pub.phase;
+            // Drive bots after render
+            setTimeout(() => { shTickBots().catch(() => {}); }, 100);
             // Phase transitions
             if (pub.phase === 'lobby') {
                 shRenderLobby();
@@ -5932,6 +5937,10 @@
             } else {
                 startBtn.style.display = 'none';
             }
+            const simBtn = document.getElementById('sh-lobby-sim-btn');
+            if (simBtn) {
+                simBtn.style.display = (isHost && n < 10) ? '' : 'none';
+            }
             // QR (only for host)
             const qrSec = document.getElementById('sh-qr-section');
             if (isHost && shClient.gameCode) {
@@ -5969,6 +5978,117 @@
         function shCopyCode() {
             if (!shClient.gameCode) return;
             navigator.clipboard.writeText(shClient.gameCode).then(() => showStatus('Code copied!'), () => showStatus('Copy failed', true));
+        }
+
+        // --- Dev: bot simulation ---
+        const SH_BOT_NAMES = ['Hermann', 'Erika', 'Klaus', 'Greta', 'Wilhelm', 'Brunhilde', 'Otto', 'Ingrid'];
+
+        async function shSimulateBots() {
+            if (!shClient.isHost) return;
+            const pub = shClient.pub;
+            if (!pub || pub.phase !== 'lobby') { showStatus('Can only add bots in lobby', true); return; }
+            if (!shClient.bots) shClient.bots = {};
+            const existing = new Set(pub.players.map(p => p.name.toLowerCase()));
+            let added = 0;
+            for (const name of SH_BOT_NAMES) {
+                if (added >= 4) break;
+                const full = 'Bot ' + name;
+                if (existing.has(full.toLowerCase())) continue;
+                const res = await shApi('shJoinGame', { gameCode: shClient.gameCode, playerName: full });
+                if (res.success) {
+                    shClient.bots[res.playerId] = { name: full };
+                    added++;
+                }
+            }
+            shSaveSession();
+            await shPoll(true);
+        }
+
+        async function shTickBots() {
+            if (!shClient.bots || Object.keys(shClient.bots).length === 0) return;
+            const pub = shClient.pub;
+            if (!pub) return;
+            if (pub.phase === 'lobby' || pub.phase === 'gameOver') return;
+            if (shClient._botTickLock) return;
+            shClient._botTickLock = true;
+            try {
+                for (const botId of Object.keys(shClient.bots)) {
+                    const bot = pub.players.find(p => p.id === botId);
+                    if (!bot) continue;
+                    if (await shBotMaybeAct(botId, bot, pub)) break;
+                }
+            } catch (e) {
+                console.warn('Bot tick error:', e);
+            } finally {
+                shClient._botTickLock = false;
+            }
+        }
+
+        async function shBotMaybeAct(botId, bot, pub) {
+            const delay = (ms) => new Promise(r => setTimeout(r, ms));
+            const rnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            const isPres = pub.presidentId === botId && bot.alive;
+            const isChan = pub.chancellorId === botId && bot.alive;
+
+            if (pub.phase === 'nomination' && isPres) {
+                await delay(600);
+                const eligible = pub.players.filter(p => p.alive && p.id !== botId && !shIsIneligibleChancellor(pub, botId, p.id));
+                if (eligible.length === 0) return false;
+                const pick = rnd(eligible);
+                await shApi('shNominate', { gameCode: shClient.gameCode, playerId: botId, chancellorId: pick.id });
+                return true;
+            }
+            if (pub.phase === 'voting' && bot.alive) {
+                const voted = new Set(pub.votesCast || []);
+                if (voted.has(botId)) return false;
+                await delay(500);
+                await shApi('shVote', { gameCode: shClient.gameCode, playerId: botId, vote: Math.random() > 0.35 });
+                return true;
+            }
+            if (pub.phase === 'legislativePres' && isPres) {
+                await delay(700);
+                const res = await shApi('shGetState', { gameCode: shClient.gameCode, playerId: botId });
+                if (res && res.success && res.priv && res.priv.drawnPolicies) {
+                    // Discard most-hostile-to-your-team policy. Party unknown to us here, so random.
+                    const idx = Math.floor(Math.random() * 3);
+                    await shApi('shPresidentDiscard', { gameCode: shClient.gameCode, playerId: botId, discardIndex: idx });
+                    return true;
+                }
+            }
+            if (pub.phase === 'legislativeChan' && isChan) {
+                await delay(700);
+                const res = await shApi('shGetState', { gameCode: shClient.gameCode, playerId: botId });
+                if (res && res.success && res.priv && res.priv.chancellorPolicies) {
+                    const idx = Math.floor(Math.random() * 2);
+                    await shApi('shChancellorEnact', { gameCode: shClient.gameCode, playerId: botId, enactIndex: idx });
+                    return true;
+                }
+            }
+            if (pub.phase === 'power' && isPres) {
+                await delay(600);
+                if (pub.pendingPower === 'peek') {
+                    await shApi('shAckPower', { gameCode: shClient.gameCode, playerId: botId });
+                    return true;
+                }
+                if (pub.pendingPower === 'investigate') {
+                    const res = await shApi('shGetState', { gameCode: shClient.gameCode, playerId: botId });
+                    if (res && res.success && res.priv && res.priv.investigateResult) {
+                        await shApi('shAckPower', { gameCode: shClient.gameCode, playerId: botId });
+                        return true;
+                    }
+                    const targets = pub.players.filter(p => p.alive && p.id !== botId);
+                    if (targets.length === 0) return false;
+                    const pick = rnd(targets);
+                    await shApi('shUsePower', { gameCode: shClient.gameCode, playerId: botId, targetId: pick.id });
+                    return true;
+                }
+                const targets = pub.players.filter(p => p.alive && p.id !== botId);
+                if (targets.length === 0) return false;
+                const pick = rnd(targets);
+                await shApi('shUsePower', { gameCode: shClient.gameCode, playerId: botId, targetId: pick.id });
+                return true;
+            }
+            return false;
         }
 
         // --- Role reveal renderer ---
@@ -6442,6 +6562,7 @@
                 shClient.priv = null;
                 shClient.roleAcknowledged = false;
                 shClient.lastPhase = null;
+                shClient.bots = null;
                 showScreen('start-screen');
             }
         }
