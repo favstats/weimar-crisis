@@ -30,6 +30,9 @@ export function roleDist(n: number) {
     case 8: return { lib: 5, fas: 2, hitlerKnows: false };
     case 9: return { lib: 5, fas: 3, hitlerKnows: false };
     case 10: return { lib: 6, fas: 3, hitlerKnows: false };
+    // Community "XL" extension: keep the pattern going into 11-12.
+    case 11: return { lib: 6, fas: 4, hitlerKnows: false };
+    case 12: return { lib: 7, fas: 4, hitlerKnows: false };
     default: return null;
   }
 }

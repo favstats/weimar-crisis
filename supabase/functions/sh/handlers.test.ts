@@ -110,11 +110,11 @@ Deno.test("join: rejected after game started, unless name matches", async () => 
 });
 
 Deno.test("join: lobby full at 10 players", async () => {
-  const names = Array.from({ length: 10 }, (_, i) => "P" + i);
+  const names = Array.from({ length: 12 }, (_, i) => "P" + i);
   const { store, code } = await setupLobby(names);
   const r = await shJoinGame(store, { gameCode: code, playerName: "Overflow" });
   assertFalse(r.success);
-  assertEquals(r.error, "Lobby full (max 10)");
+  assertEquals(r.error, "Lobby full (max 12)");
 });
 
 // ============================================================
@@ -131,7 +131,7 @@ Deno.test("start: fewer than 5 players rejected", async () => {
   const { store, code, hostId } = await setupLobby(["H", "B", "C"]);
   const r = await shStartGame(store, { gameCode: code, playerId: hostId });
   assertFalse(r.success);
-  assert(r.error!.includes("5-10 players"));
+  assert(r.error!.includes("5-12 players"));
 });
 
 Deno.test("start: valid count transitions to nomination; roles are dealt", async () => {

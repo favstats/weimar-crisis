@@ -125,7 +125,7 @@ export async function shJoinGame(store: Store, p: any) {
     };
   }
   if (s.phase !== "lobby") return { success: false, error: "Game already started; name not recognized" };
-  if (s.players.length >= 10) return { success: false, error: "Lobby full (max 10)" };
+  if (s.players.length >= 12) return { success: false, error: "Lobby full (max 12)" };
   const id = genId();
   s.players.push({
     id,
@@ -148,7 +148,7 @@ export async function shStartGame(store: Store, p: any) {
   if (s.phase !== "lobby") return { success: false, error: "Already started" };
   const n = s.players.length;
   const dist = roleDist(n);
-  if (!dist) return { success: false, error: `Need 5-10 players, have ${n}` };
+  if (!dist) return { success: false, error: `Need 5-12 players, have ${n}` };
   const roles: { role: string; party: string }[] = [];
   for (let i = 0; i < dist.lib; i++) roles.push({ role: "liberal", party: "liberal" });
   for (let i = 0; i < dist.fas; i++) roles.push({ role: "fascist", party: "fascist" });

@@ -58,13 +58,19 @@ Deno.test("roleDist: 7 players — Hitler no longer knows", () => {
 Deno.test("roleDist: 10 players — full count, Hitler blind", () => {
   assertEquals(roleDist(10), { lib: 6, fas: 3, hitlerKnows: false });
 });
-Deno.test("roleDist: below 5 and above 10 returns null", () => {
+Deno.test("roleDist: 11 players (XL) — 6L/4F/H", () => {
+  assertEquals(roleDist(11), { lib: 6, fas: 4, hitlerKnows: false });
+});
+Deno.test("roleDist: 12 players (XL) — 7L/4F/H", () => {
+  assertEquals(roleDist(12), { lib: 7, fas: 4, hitlerKnows: false });
+});
+Deno.test("roleDist: below 5 and above 12 returns null", () => {
   assertEquals(roleDist(4), null);
-  assertEquals(roleDist(11), null);
+  assertEquals(roleDist(13), null);
   assertEquals(roleDist(0), null);
 });
 Deno.test("roleDist: each count's lib+fas+1(Hitler) equals player count", () => {
-  for (let n = 5; n <= 10; n++) {
+  for (let n = 5; n <= 12; n++) {
     const d = roleDist(n)!;
     assertEquals(d.lib + d.fas + 1, n, `failed for ${n} players`);
   }

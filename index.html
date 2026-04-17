@@ -2902,7 +2902,7 @@
                     <input type="text" class="join-input" id="sh-join-code-input" placeholder="GAME CODE" maxlength="10">
                     <button class="btn btn-secondary btn-join" onclick="shJoinWithCode()">Join</button>
                 </div>
-                <div class="sh-mode-note">Multiplayer: each player joins on their own phone (5–10 players).</div>
+                <div class="sh-mode-note">Multiplayer: each player joins on their own phone (5–12 players).</div>
             </div>
         </div>
     </div>
@@ -3249,9 +3249,9 @@
                 <div id="sh-qr-code"></div>
                 <div class="qr-label">Scan to join</div>
             </div>
-            <div class="sh-meta">Players (<span id="sh-lobby-count">0</span>/10)</div>
+            <div class="sh-meta">Players (<span id="sh-lobby-count">0</span>/12)</div>
             <ul class="sh-player-list" id="sh-lobby-players"></ul>
-            <div class="sh-meta" id="sh-lobby-status">Need 5–10 players to begin.</div>
+            <div class="sh-meta" id="sh-lobby-status">Need 5–12 players to begin.</div>
             <button class="sh-btn" id="sh-lobby-start-btn" onclick="shHostStart()" style="display:none;" disabled>Start Game</button>
             <button class="sh-btn alt" onclick="shCopyCode()">Copy Game Code</button>
             <label id="sh-lobby-expansion-label" style="display:none; text-align:left; margin: 8px 0; font-size: 0.85rem; color: var(--brown);">
@@ -6391,20 +6391,20 @@
             document.getElementById('sh-lobby-count').textContent = (pub.players || []).length;
             const n = (pub.players || []).length;
             const statusEl = document.getElementById('sh-lobby-status');
-            if (n < 5) statusEl.textContent = 'Need ' + (5 - n) + ' more player' + (5 - n === 1 ? '' : 's') + ' (min 5, max 10).';
-            else if (n > 10) statusEl.textContent = 'Too many players (max 10).';
+            if (n < 5) statusEl.textContent = 'Need ' + (5 - n) + ' more player' + (5 - n === 1 ? '' : 's') + ' (min 5, max 12).';
+            else if (n > 12) statusEl.textContent = 'Too many players (max 12).';
             else statusEl.textContent = 'Ready. Host can start.';
             const isHost = shClient.isHost;
             const startBtn = document.getElementById('sh-lobby-start-btn');
             if (isHost) {
                 startBtn.style.display = '';
-                startBtn.disabled = !(n >= 5 && n <= 10);
+                startBtn.disabled = !(n >= 5 && n <= 12);
             } else {
                 startBtn.style.display = 'none';
             }
             const simBtn = document.getElementById('sh-lobby-sim-btn');
             if (simBtn) {
-                simBtn.style.display = (isHost && n < 10) ? '' : 'none';
+                simBtn.style.display = (isHost && n < 12) ? '' : 'none';
             }
             const expLabel = document.getElementById('sh-lobby-expansion-label');
             if (expLabel) expLabel.style.display = isHost ? 'block' : 'none';
