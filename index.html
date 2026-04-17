@@ -7392,6 +7392,16 @@
         init = function() {
             _originalInit_sh();
             shMaybeRestore().catch(() => {});
+            // Test hook: expose internals to window so Playwright can seed
+            // client state for visual regression. Harmless in production.
+            window.__sh = {
+                client: shClient,
+                setStartMode: setStartMode,
+                renderRole: shRenderRole,
+                renderPlay: shRenderPlay,
+                renderLobby: shRenderLobby,
+                renderEnd: shRenderEnd
+            };
         };
 
 
