@@ -345,39 +345,235 @@
         }
 
         .sh-board {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
+            position: relative;
             margin: 16px 0;
+            padding: 20px 18px 16px;
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(201,162,39,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(194,59,34,0.03) 0%, transparent 40%),
+                var(--cream);
+            border: 3px solid var(--brown);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.18), 0 10px 24px rgba(0,0,0,0.15);
+        }
+        .sh-board::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border: 1px solid var(--tan);
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .sh-board-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.78rem;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: #8a6d1a;
+            text-align: center;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .sh-board-title::before, .sh-board-title::after {
+            content: '';
+            flex: 1;
+            max-width: 50px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #8a6d1a, transparent);
         }
         .sh-track {
-            border: 3px solid var(--brown);
-            padding: 8px;
-            background: rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
         }
         .sh-track-label {
             font-family: 'Bebas Neue', sans-serif;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.14em;
+            width: 58px;
+            text-align: right;
+            font-size: 0.78rem;
+            text-transform: uppercase;
             color: var(--brown);
-            margin-bottom: 6px;
-            font-size: 0.95rem;
         }
-        .sh-track-cells { display: flex; gap: 4px; justify-content: center; }
+        .sh-track.lib .sh-track-label { color: var(--liberal-blue); }
+        .sh-track.fas .sh-track-label { color: var(--fascist-red); }
+        .sh-track-cells {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+            justify-content: center;
+        }
         .sh-track-cell {
             flex: 1;
+            max-width: 48px;
             aspect-ratio: 3/4;
-            background: rgba(0,0,0,0.1);
-            border: 2px solid var(--brown);
-            display: flex; align-items: center; justify-content: center;
+            border: 2px solid;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
             font-family: 'Bebas Neue', sans-serif;
             font-size: 0.65rem;
-            color: var(--brown);
-            text-align: center;
+            letter-spacing: 0.04em;
             padding: 2px;
             line-height: 1;
+            position: relative;
+            transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
         }
-        .sh-track.lib .sh-track-cell.filled { background: var(--liberal-blue); color: var(--cream); }
-        .sh-track.fas .sh-track-cell.filled { background: var(--fascist-red); color: var(--cream); }
+        .sh-track-cell i { font-size: 1rem; }
+        .sh-track-cell .sh-slot-num { opacity: 0.65; }
+        .sh-track-cell .sh-slot-power {
+            font-size: 0.48rem;
+            letter-spacing: 0.1em;
+            opacity: 0.85;
+            text-transform: uppercase;
+        }
+        .sh-track.lib .sh-track-cell {
+            border-color: var(--liberal-blue);
+            background: rgba(74,111,165,0.08);
+            color: var(--liberal-blue);
+        }
+        .sh-track.lib .sh-track-cell.filled {
+            background: linear-gradient(180deg, var(--liberal-blue) 0%, var(--liberal-dark) 100%);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(74,111,165,0.5), 0 2px 0 var(--liberal-dark), inset 0 1px rgba(255,255,255,0.18);
+            border-color: var(--liberal-dark);
+        }
+        .sh-track.fas .sh-track-cell {
+            border-color: var(--fascist-red);
+            background: rgba(194,59,34,0.06);
+            color: var(--fascist-red);
+        }
+        .sh-track.fas .sh-track-cell.filled {
+            background: linear-gradient(180deg, var(--fascist-red) 0%, var(--fascist-dark) 100%);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(194,59,34,0.5), 0 2px 0 var(--fascist-dark), inset 0 1px rgba(255,255,255,0.18);
+            border-color: var(--fascist-dark);
+        }
+        @keyframes shSlotEnact {
+            0% { transform: scale(0.7); opacity: 0.3; }
+            60% { transform: scale(1.12); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .sh-track-cell.filled { animation: shSlotEnact 0.45s cubic-bezier(.2,1.4,.4,1) both; }
+
+        /* Election tracker (dots) */
+        .sh-tracker-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 2px solid var(--tan);
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.12em;
+            color: var(--brown);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .sh-tracker-dot {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--brown-light);
+            background: rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s, background 0.3s, border-color 0.3s;
+        }
+        .sh-tracker-dot.filled {
+            background: radial-gradient(circle at 40% 35%, #f0d060, var(--gold));
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(201,162,39,0.6), 0 0 20px rgba(201,162,39,0.3);
+        }
+
+        /* Danger zone */
+        .sh-danger-zone {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #2a0a0a, #1a0505, #2a0a0a);
+            border: 2.5px solid var(--fascist-red);
+            border-radius: 4px;
+            color: #e8c4c4;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.1em;
+            text-align: center;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            box-shadow: 0 0 16px rgba(194,59,34,0.35);
+        }
+        .sh-danger-zone i { color: var(--fascist-red); margin-right: 6px; }
+
+        /* Meta chips row + election status */
+        .sh-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin: 10px 0 4px;
+        }
+        .sh-meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(44,36,22,0.08);
+            border: 1px solid rgba(44,36,22,0.2);
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.08em;
+            font-size: 0.72rem;
+            color: var(--brown);
+        }
+        .sh-meta-chip i { color: var(--brown-light); font-size: 0.75rem; }
+        .sh-meta-chip strong { color: var(--brown); font-weight: 400; }
+
+        .sh-election-status {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 10px 0;
+            padding: 8px 10px;
+            background: rgba(201,162,39,0.08);
+            border-top: 1px solid rgba(201,162,39,0.3);
+            border-bottom: 1px solid rgba(201,162,39,0.3);
+        }
+        .sh-gov-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+        .sh-gov-role {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.12em;
+            font-size: 0.62rem;
+            color: #8a6d1a;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+        .sh-gov-name {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.06em;
+            font-size: 0.95rem;
+            color: var(--brown);
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sh-gov-sep {
+            font-family: 'UnifrakturCook', cursive;
+            color: var(--gold);
+            font-size: 1.1rem;
+            opacity: 0.7;
+        }
         .sh-policy-card {
             position: relative;
             display: inline-flex;
@@ -3107,6 +3303,7 @@
             <h2 class="sh-h" id="sh-play-title">Government</h2>
             <div class="sh-board" id="sh-play-board"></div>
             <div class="sh-meta" id="sh-play-meta"></div>
+            <div id="sh-play-election"></div>
             <div class="sh-banner" id="sh-play-banner" style="display:none;">—</div>
             <div class="sh-text" id="sh-play-status">—</div>
             <div id="sh-play-actions"></div>
@@ -6562,14 +6759,30 @@
             // Board
             const board = document.getElementById('sh-play-board');
             board.innerHTML = shRenderBoardHtml(pub);
-            // Meta
+            // Meta (icon chips)
             const presPlayer = (pub.players || []).find(p => p.id === pub.presidentId);
             const chanPlayer = (pub.players || []).find(p => p.id === pub.chancellorId);
             const aliveCount = (pub.players || []).filter(p => p.alive).length;
-            document.getElementById('sh-play-meta').textContent =
-                'Deck: ' + pub.deckCount + ' · Discard: ' + pub.discardCount +
-                ' · Election tracker: ' + pub.electionTracker + '/3' +
-                ' · Alive: ' + aliveCount;
+            const metaEl = document.getElementById('sh-play-meta');
+            metaEl.className = 'sh-meta-row';
+            metaEl.innerHTML =
+                '<span class="sh-meta-chip" title="Cards left in the policy deck"><i class="fas fa-layer-group"></i><strong>' + pub.deckCount + '</strong> deck</span>' +
+                '<span class="sh-meta-chip" title="Discarded policies"><i class="fas fa-trash"></i><strong>' + pub.discardCount + '</strong> discard</span>' +
+                '<span class="sh-meta-chip" title="Living players"><i class="fas fa-user"></i><strong>' + aliveCount + '</strong> alive</span>' +
+                (pub.fascistPolicies >= 5 ? '<span class="sh-meta-chip" style="border-color: var(--gold); color: var(--gold);" title="Veto power unlocked"><i class="fas fa-ban"></i>veto</span>' : '');
+            // Election status card (always show current Pres/Chan when set)
+            let electionHtml = '';
+            if (presPlayer || chanPlayer || pub.phase === 'nomination' || pub.phase === 'voting' || pub.phase === 'legislativePres' || pub.phase === 'legislativeChan' || pub.phase === 'power') {
+                const presName = presPlayer ? presPlayer.name : '—';
+                const chanName = chanPlayer ? chanPlayer.name : (pub.phase === 'nomination' ? 'awaiting…' : '—');
+                electionHtml =
+                    '<div class="sh-election-status">' +
+                        '<div class="sh-gov-slot"><div class="sh-gov-role">President</div><div class="sh-gov-name">' + presName + '</div></div>' +
+                        '<div class="sh-gov-sep">\u2014</div>' +
+                        '<div class="sh-gov-slot"><div class="sh-gov-role">Chancellor</div><div class="sh-gov-name">' + chanName + '</div></div>' +
+                    '</div>';
+            }
+            document.getElementById('sh-play-election').innerHTML = electionHtml;
             const banner = document.getElementById('sh-play-banner');
             banner.style.display = 'none';
             const status = document.getElementById('sh-play-status');
@@ -6642,9 +6855,10 @@
                 note.textContent = 'Judicial veto armed: next enactment will be struck down.';
                 actions.appendChild(note);
             }
-            // Phase-specific
+            // Phase-specific prompts (concise, since Pres/Chan are shown above)
+            status.innerHTML = '';
             if (pub.phase === 'nomination') {
-                status.innerHTML = 'President <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong> is nominating a Chancellor.';
+                status.innerHTML = (presPlayer ? presPlayer.name : '?') + ' is nominating a Chancellor.';
                 if (priv && priv.me && priv.me.id === pub.presidentId && priv.me.alive) {
                     const wrap = document.createElement('div');
                     const hdr = document.createElement('div');
@@ -6667,7 +6881,7 @@
                     actions.appendChild(wrap);
                 }
             } else if (pub.phase === 'voting') {
-                status.innerHTML = 'Election: <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong> (Pres) &middot; <strong>' + (chanPlayer ? chanPlayer.name : '?') + '</strong> (Chan)';
+                status.innerHTML = 'Voting on this government. Ja or Nein?';
                 const already = priv && typeof priv.myVote !== 'undefined';
                 const canVote = priv && priv.me && priv.me.alive;
                 if (canVote && !already) {
@@ -6705,7 +6919,7 @@
                     actions.appendChild(note);
                 }
             } else if (pub.phase === 'legislativePres') {
-                status.innerHTML = 'President <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong> is reviewing 3 policies.';
+                status.innerHTML = 'President is reviewing 3 policies…';
                 if (priv && priv.me && priv.me.id === pub.presidentId && priv.drawnPolicies) {
                     shRenderPolicyPick(actions, priv.drawnPolicies, {
                         instruction: 'Choose one policy to DISCARD. The other two pass to the Chancellor.',
@@ -6717,7 +6931,7 @@
                     });
                 }
             } else if (pub.phase === 'legislativeChan') {
-                status.innerHTML = 'Chancellor <strong>' + (chanPlayer ? chanPlayer.name : '?') + '</strong> is choosing which policy to enact.';
+                status.innerHTML = 'Chancellor is choosing which policy to enact…';
                 if (priv && priv.me && priv.me.id === pub.chancellorId && priv.chancellorPolicies) {
                     const wrap = document.createElement('div');
                     shRenderPolicyPick(wrap, priv.chancellorPolicies, {
@@ -6767,7 +6981,7 @@
                 }
             } else if (pub.phase === 'power') {
                 const pwLabel = ({peek:'Policy Peek', investigate:'Investigate Loyalty', specialElection:'Special Election', execute:'Execute'})[pub.pendingPower] || 'Executive Power';
-                status.innerHTML = pwLabel + ' — President <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong>';
+                status.innerHTML = 'Executive Power: ' + pwLabel;
                 if (priv && priv.me && priv.me.id === pub.presidentId) {
                     const wrap = document.createElement('div');
                     if (pub.pendingPower === 'peek' && priv.peekResult) {
@@ -6924,21 +7138,55 @@
             draw();
         }
 
+        const SH_POWER_DISPLAY = {
+            peek:            { icon: 'fa-eye',        label: 'PEEK',   tooltip: 'After this policy: peek at the top 3' },
+            investigate:     { icon: 'fa-magnifying-glass', label: 'SPY', tooltip: 'After this policy: investigate a player' },
+            specialElection: { icon: 'fa-star',       label: 'ELECT',  tooltip: 'After this policy: call a Special Election' },
+            execute:         { icon: 'fa-crosshairs', label: 'KILL',   tooltip: 'After this policy: execute a player' }
+        };
+
         function shRenderBoardHtml(pub) {
             const n = (pub.players || []).length;
             const fasPowers = shFascistPowerLabels(n);
             let html = '';
+            html += '<div class="sh-board-title">Gesetzgebung \u00b7 Policy Board</div>';
+            // Liberal track
             html += '<div class="sh-track lib"><div class="sh-track-label">Liberal</div><div class="sh-track-cells">';
             for (let i = 0; i < 5; i++) {
-                html += '<div class="sh-track-cell' + (i < pub.liberalPolicies ? ' filled' : '') + '">' + (i + 1) + '</div>';
+                const enacted = i < pub.liberalPolicies;
+                html += '<div class="sh-track-cell' + (enacted ? ' filled' : '') + '" title="Liberal ' + (i + 1) + '/5">' +
+                    (enacted ? '<i class="fas fa-dove"></i>' : '<span class="sh-slot-num">' + (i + 1) + '</span>') +
+                    '</div>';
             }
             html += '</div></div>';
+            // Fascist track with power labels
             html += '<div class="sh-track fas"><div class="sh-track-label">Fascist</div><div class="sh-track-cells">';
             for (let i = 0; i < 6; i++) {
+                const enacted = i < pub.fascistPolicies;
                 const pw = fasPowers[i];
-                html += '<div class="sh-track-cell' + (i < pub.fascistPolicies ? ' filled' : '') + '" title="' + (pw || '') + '">' + (i + 1) + (pw ? '<span class="sh-track-power-marker" data-pw="' + pw + '"></span>' : '') + '</div>';
+                const pwMeta = pw ? SH_POWER_DISPLAY[pw] : null;
+                let inner;
+                if (enacted) {
+                    inner = '<i class="fas fa-fire"></i>';
+                } else if (pwMeta) {
+                    inner = '<i class="fas ' + pwMeta.icon + '"></i><span class="sh-slot-power">' + pwMeta.label + '</span>';
+                } else {
+                    inner = '<span class="sh-slot-num">' + (i + 1) + '</span>';
+                }
+                const title = pwMeta ? pwMeta.tooltip : 'Fascist ' + (i + 1);
+                html += '<div class="sh-track-cell' + (enacted ? ' filled' : '') + '" title="' + title + '">' + inner + '</div>';
             }
             html += '</div></div>';
+            // Election tracker dots
+            html += '<div class="sh-tracker-row"><span>Election Tracker</span>';
+            for (let i = 0; i < 3; i++) {
+                html += '<div class="sh-tracker-dot' + (i < pub.electionTracker ? ' filled' : '') + '"></div>';
+            }
+            html += '</div>';
+            // Danger zone warning
+            if (pub.fascistPolicies >= 3 && pub.phase !== 'gameOver') {
+                html += '<div class="sh-danger-zone"><i class="fas fa-triangle-exclamation"></i>Gefahr! Electing Hitler as Chancellor = instant Fascist victory</div>';
+            }
             return html;
         }
 
