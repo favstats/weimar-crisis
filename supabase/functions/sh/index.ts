@@ -240,6 +240,12 @@ const POWER_ROLES = [
   "police_chief", "assassin", "journalist",
   "industrialist", "union_organizer", "constitutional_judge",
 ];
+const BEHAVIOR_ROLES = [
+  "feminist", "misogynist", "aristocrat", "proletarian",
+  "pacifist", "militarist", "monarchist", "revolutionary",
+  "prussian", "bavarian", "devout", "atheist",
+  "academic", "worker", "veteran", "hothead",
+];
 
 async function shStartGame(p: any) {
   const game = await loadGame(p.gameCode);
@@ -258,13 +264,29 @@ async function shStartGame(p: any) {
   s.players = shuffle(s.players);
   const expansion = !!p.expansion;
   s.expansion = expansion;
-  const powerAssign = expansion ? shuffle(POWER_ROLES.slice()) : [];
+  const cfg = p.expansionConfig || {};
+  const selectedPowerPool = Array.isArray(cfg.powerRoles) && cfg.powerRoles.length
+    ? cfg.powerRoles.filter((r: string) => POWER_ROLES.indexOf(r) >= 0)
+    : POWER_ROLES.slice();
+  const selectedBehPool = Array.isArray(cfg.behaviors) && cfg.behaviors.length
+    ? cfg.behaviors.filter((b: string) => BEHAVIOR_ROLES.indexOf(b) >= 0)
+    : BEHAVIOR_ROLES.slice();
+  const powerQueue = expansion ? shuffle(selectedPowerPool.slice()) : [];
+  const behQueue = expansion ? shuffle(selectedBehPool.slice()) : [];
   for (let i = 0; i < s.players.length; i++) {
     s.players[i].role = shuffledRoles[i].role;
     s.players[i].party = shuffledRoles[i].party;
     s.players[i].alive = true;
     s.players[i].hasBeenInvestigated = false;
-    s.players[i].powerRole = expansion ? (powerAssign[i % powerAssign.length] || null) : null;
+    s.players[i].powerRole = null;
+    s.players[i].behaviorRole = null;
+    if (expansion) {
+      if (powerQueue.length > 0) {
+        s.players[i].powerRole = powerQueue.shift();
+      } else if (behQueue.length > 0) {
+        s.players[i].behaviorRole = behQueue.shift();
+      }
+    }
   }
   s.hitlerKnowsFascists = dist.hitlerKnows;
   s.policyDeck = buildDeck();
@@ -334,6 +356,7 @@ async function shGetState(p: any) {
       party: s.phase === "lobby" ? null : me.party,
       hasBeenInvestigated: !!me.hasBeenInvestigated,
       powerRole: s.phase === "lobby" ? null : (me.powerRole || null),
+      behaviorRole: s.phase === "lobby" ? null : (me.behaviorRole || null),
     };
     if (s.phase !== "lobby" && me.party === "fascist" && (me.role !== "hitler" || s.hitlerKnowsFascists)) {
       priv.fascistTeam = s.players
@@ -591,7 +614,7 @@ async function shResetGame(p: any) {
   const s = game.state;
   if (s.hostId !== p.playerId) return { success: false, error: "Only host can reset" };
   s.phase = "lobby";
-  s.players.forEach((x: any) => { x.role = null; x.party = null; x.alive = true; x.hasBeenInvestigated = false; x.powerRole = null; });
+  s.players.forEach((x: any) => { x.role = null; x.party = null; x.alive = true; x.hasBeenInvestigated = false; x.powerRole = null; x.behaviorRole = null; });
   s.policyDeck = [];
   s.discardPile = [];
   s.drawnPolicies = null;
