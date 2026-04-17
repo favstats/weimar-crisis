@@ -236,6 +236,11 @@ async function shJoinGame(p: any) {
   return { success: true, gameCode: game.code, playerId: id, isHost: false };
 }
 
+const POWER_ROLES = [
+  "police_chief", "assassin", "journalist",
+  "industrialist", "union_organizer", "constitutional_judge",
+];
+
 async function shStartGame(p: any) {
   const game = await loadGame(p.gameCode);
   if (!game) return { success: false, error: "Game not found" };
@@ -251,11 +256,15 @@ async function shStartGame(p: any) {
   roles.push({ role: "hitler", party: "fascist" });
   const shuffledRoles = shuffle(roles);
   s.players = shuffle(s.players);
+  const expansion = !!p.expansion;
+  s.expansion = expansion;
+  const powerAssign = expansion ? shuffle(POWER_ROLES.slice()) : [];
   for (let i = 0; i < s.players.length; i++) {
     s.players[i].role = shuffledRoles[i].role;
     s.players[i].party = shuffledRoles[i].party;
     s.players[i].alive = true;
     s.players[i].hasBeenInvestigated = false;
+    s.players[i].powerRole = expansion ? (powerAssign[i % powerAssign.length] || null) : null;
   }
   s.hitlerKnowsFascists = dist.hitlerKnows;
   s.policyDeck = buildDeck();
@@ -324,6 +333,7 @@ async function shGetState(p: any) {
       role: s.phase === "lobby" ? null : me.role,
       party: s.phase === "lobby" ? null : me.party,
       hasBeenInvestigated: !!me.hasBeenInvestigated,
+      powerRole: s.phase === "lobby" ? null : (me.powerRole || null),
     };
     if (s.phase !== "lobby" && me.party === "fascist" && (me.role !== "hitler" || s.hitlerKnowsFascists)) {
       priv.fascistTeam = s.players
@@ -581,7 +591,7 @@ async function shResetGame(p: any) {
   const s = game.state;
   if (s.hostId !== p.playerId) return { success: false, error: "Only host can reset" };
   s.phase = "lobby";
-  s.players.forEach((x: any) => { x.role = null; x.party = null; x.alive = true; x.hasBeenInvestigated = false; });
+  s.players.forEach((x: any) => { x.role = null; x.party = null; x.alive = true; x.hasBeenInvestigated = false; x.powerRole = null; });
   s.policyDeck = [];
   s.discardPile = [];
   s.drawnPolicies = null;

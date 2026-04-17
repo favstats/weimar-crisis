@@ -379,25 +379,105 @@
         .sh-track.lib .sh-track-cell.filled { background: var(--liberal-blue); color: var(--cream); }
         .sh-track.fas .sh-track-cell.filled { background: var(--fascist-red); color: var(--cream); }
         .sh-policy-card {
-            display: inline-block;
-            width: 100px; height: 140px;
-            border: 3px solid var(--brown);
-            margin: 6px;
-            font-family: 'Bebas Neue', sans-serif;
+            position: relative;
             display: inline-flex;
             flex-direction: column;
-            align-items: center; justify-content: center;
-            color: var(--cream);
-            cursor: pointer;
-            letter-spacing: 0.08em;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 108px; height: 150px;
+            margin: 8px;
+            padding: 14px 10px;
+            border: 3px solid var(--brown);
+            border-radius: 6px;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.12em;
             text-align: center;
-            padding: 8px;
-            transition: transform 0.15s;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.25);
+            transition: transform 0.2s, box-shadow 0.25s, border-color 0.2s, background 0.25s, color 0.2s;
         }
-        .sh-policy-card:hover { transform: translateY(-3px); }
-        .sh-policy-card.lib { background: var(--liberal-blue); }
-        .sh-policy-card.fas { background: var(--fascist-red); }
-        .sh-policy-card.back { background: var(--brown); }
+        .sh-policy-card .sh-policy-icon {
+            font-size: 1.9rem;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+            transition: transform 0.25s cubic-bezier(.2,1.4,.4,1);
+        }
+        .sh-policy-card .sh-policy-label {
+            font-size: 0.85rem;
+        }
+        .sh-policy-card .sh-policy-sub {
+            font-family: 'UnifrakturCook', cursive;
+            font-weight: 700;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            opacity: 0.7;
+        }
+        /* Art Deco corner brackets */
+        .sh-policy-card::before,
+        .sh-policy-card::after {
+            content: '';
+            position: absolute;
+            width: 14px; height: 14px;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            opacity: 0.55;
+        }
+        .sh-policy-card::before {
+            top: 5px; left: 5px;
+            border-top: 2px solid currentColor;
+            border-left: 2px solid currentColor;
+        }
+        .sh-policy-card::after {
+            bottom: 5px; right: 5px;
+            border-bottom: 2px solid currentColor;
+            border-right: 2px solid currentColor;
+        }
+        .sh-policy-card:hover::before,
+        .sh-policy-card:hover::after { opacity: 0.9; }
+        .sh-policy-card:hover { transform: translateY(-4px); box-shadow: 4px 8px 0 rgba(0,0,0,0.28); }
+        .sh-policy-card:hover .sh-policy-icon { transform: scale(1.12); }
+        .sh-policy-card.lib {
+            background: linear-gradient(175deg, rgba(74,111,165,0.22) 0%, rgba(74,111,165,0.06) 100%);
+            border-color: var(--liberal-blue);
+            color: var(--liberal-blue);
+        }
+        .sh-policy-card.lib:hover {
+            background: linear-gradient(180deg, var(--liberal-blue) 0%, var(--liberal-dark) 100%);
+            color: var(--cream);
+            box-shadow: 4px 8px 0 rgba(0,0,0,0.28), 0 0 20px rgba(74,111,165,0.35);
+        }
+        .sh-policy-card.fas {
+            background: linear-gradient(175deg, rgba(194,59,34,0.22) 0%, rgba(194,59,34,0.06) 100%);
+            border-color: var(--fascist-red);
+            color: var(--fascist-red);
+        }
+        .sh-policy-card.fas:hover {
+            background: linear-gradient(180deg, var(--fascist-red) 0%, var(--fascist-dark) 100%);
+            color: var(--cream);
+            box-shadow: 4px 8px 0 rgba(0,0,0,0.28), 0 0 20px rgba(194,59,34,0.35);
+        }
+        .sh-policy-card.back {
+            background:
+                radial-gradient(ellipse at 50% 30%, rgba(201,162,39,0.14) 0%, transparent 60%),
+                linear-gradient(168deg, #2a2318 0%, #1a1510 100%);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+        .sh-policy-card.selected {
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.45), 0 0 26px rgba(201,162,39,0.35);
+            transform: translateY(-8px) scale(1.04);
+        }
+        .sh-policy-card.selected::before,
+        .sh-policy-card.selected::after { opacity: 1; }
+        .sh-policy-card.dimmed { opacity: 0.45; filter: grayscale(0.4); }
+        .sh-policy-card.dimmed:hover { transform: none; }
+        @keyframes shCardDeal {
+            from { opacity: 0; transform: translateY(14px) scale(0.94); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .sh-policy-card.dealt { animation: shCardDeal 0.4s cubic-bezier(.2,1.4,.4,1) both; }
 
         .sh-player-list { list-style: none; padding: 0; margin: 8px 0; }
         .sh-player-pick {
@@ -2859,6 +2939,10 @@
             <div class="sh-meta" id="sh-lobby-status">Need 5–10 players to begin.</div>
             <button class="sh-btn" id="sh-lobby-start-btn" onclick="shHostStart()" style="display:none;" disabled>Start Game</button>
             <button class="sh-btn alt" onclick="shCopyCode()">Copy Game Code</button>
+            <label id="sh-lobby-expansion-label" style="display:none; text-align:left; margin: 8px 0; font-size: 0.85rem; color: var(--brown);">
+                <input type="checkbox" id="sh-lobby-expansion" onchange="shToggleExpansion()" style="margin-right: 6px;">
+                Include Weimar Crisis expansion power roles
+            </label>
             <button class="sh-btn alt" id="sh-lobby-sim-btn" onclick="shSimulateBots()" style="display:none; font-size: 0.8rem;">+4 Test Bots (dev)</button>
         </div>
     </div>
@@ -2885,6 +2969,7 @@
             <div class="sh-text" id="sh-play-status">—</div>
             <div id="sh-play-actions"></div>
             <div class="sh-host-controls">
+                <button class="sh-btn alt" onclick="shShowMyRole()">My Role</button>
                 <button class="sh-btn alt" onclick="shShowPlayers()">Players</button>
                 <button class="sh-btn danger" id="sh-reset-btn" onclick="shConfirmReset()" style="display:none;">End Game / Reset</button>
             </div>
@@ -5941,6 +6026,8 @@
             if (simBtn) {
                 simBtn.style.display = (isHost && n < 10) ? '' : 'none';
             }
+            const expLabel = document.getElementById('sh-lobby-expansion-label');
+            if (expLabel) expLabel.style.display = isHost ? 'block' : 'none';
             // QR (only for host)
             const qrSec = document.getElementById('sh-qr-section');
             if (isHost && shClient.gameCode) {
@@ -5965,7 +6052,8 @@
         async function shHostStart() {
             try {
                 showStatus('Starting game...');
-                const res = await shApi('shStartGame', { gameCode: shClient.gameCode, playerId: shClient.playerId });
+                const expansion = !!document.getElementById('sh-lobby-expansion').checked;
+                const res = await shApi('shStartGame', { gameCode: shClient.gameCode, playerId: shClient.playerId, expansion: expansion });
                 if (!res.success) throw new Error(res.error || 'Start failed');
                 shClient.roleAcknowledged = false;
                 shSaveSession();
@@ -5973,6 +6061,21 @@
             } catch (e) {
                 showStatus('Start failed: ' + e.message, true);
             }
+        }
+
+        function shToggleExpansion() {
+            // Value read at shHostStart; nothing to do eagerly.
+        }
+
+        function shShowMyRole() {
+            const priv = shClient.priv;
+            if (!priv || !priv.me || !priv.me.role) {
+                showStatus('Role not yet assigned', true);
+                return;
+            }
+            shClient.roleAcknowledged = false;
+            shSaveSession();
+            shRenderRole();
         }
 
         function shCopyCode() {
@@ -6126,6 +6229,29 @@
                     teamList.appendChild(li);
                 });
             }
+            // Remove any previous power-role block
+            const oldPw = document.getElementById('sh-role-power');
+            if (oldPw) oldPw.remove();
+            if (priv.me.powerRole) {
+                const powerMeta = {
+                    police_chief: { label: 'Police Chief', desc: 'Once per game, secretly reveal the party of any other player.' },
+                    assassin: { label: 'Assassin', desc: 'Once per game, privately name a target for assassination.' },
+                    journalist: { label: 'Journalist', desc: 'Once per game, publish a truth or leak about another player.' },
+                    industrialist: { label: 'Industrialist', desc: 'Once per game, bribe a player — your group decides the effect.' },
+                    union_organizer: { label: 'Union Organizer', desc: 'Once per game, call a strike that blocks an enactment.' },
+                    constitutional_judge: { label: 'Constitutional Judge', desc: 'Once per game, veto any policy enactment.' }
+                };
+                const meta = powerMeta[priv.me.powerRole] || { label: priv.me.powerRole, desc: '' };
+                const container = document.querySelector('#sh-role-screen .sh-container');
+                const block = document.createElement('div');
+                block.id = 'sh-role-power';
+                block.style.margin = '10px 0';
+                block.innerHTML =
+                    '<div class="sh-meta" style="margin-top: 8px;">Your Weimar Crisis expansion role:</div>' +
+                    '<div class="sh-banner" style="background: var(--gold); color: var(--brown); border-color: var(--brown);">' + meta.label + '</div>' +
+                    '<div class="sh-text">' + meta.desc + ' <em>(mechanics are played out informally by the group.)</em></div>';
+                container.appendChild(block);
+            }
             // Add ack button once
             const active = document.querySelector('.screen.active');
             if (!active || active.id !== 'sh-role-screen') {
@@ -6176,16 +6302,26 @@
             actions.innerHTML = '';
             // Reset button for host
             document.getElementById('sh-reset-btn').style.display = shClient.isHost ? '' : 'none';
-            // Show last vote result (if just resolved)
-            if (pub.voteResult && pub.phase !== 'voting') {
+            // Show last vote result + breakdown (publicly, after every vote resolves)
+            if (pub.voteResult && pub.phase !== 'voting' && pub.voteBallots) {
                 const vr = pub.voteResult;
-                if (pub.phase === 'nomination' && !vr.passed) {
-                    banner.style.display = '';
-                    banner.className = 'sh-banner fas';
-                    let msg = 'Last election FAILED (' + vr.jas + '/' + vr.total + ' Ja).';
-                    if (vr.chaosPolicy) msg += ' Chaos! Top policy auto-enacted: ' + (vr.chaosPolicy === 'lib' ? 'LIBERAL' : 'FASCIST') + '.';
-                    banner.textContent = msg;
-                }
+                banner.style.display = '';
+                banner.className = 'sh-banner ' + (vr.passed ? 'lib' : 'fas');
+                let msg = vr.passed
+                    ? 'Election PASSED (' + vr.jas + '/' + vr.total + ' Ja).'
+                    : 'Election FAILED (' + vr.jas + '/' + vr.total + ' Ja).';
+                if (vr.chaosPolicy) msg += ' Chaos! Top policy auto-enacted: ' + (vr.chaosPolicy === 'lib' ? 'LIBERAL' : 'FASCIST') + '.';
+                banner.textContent = msg;
+                const tally = document.createElement('div');
+                tally.className = 'sh-vote-tally';
+                tally.style.margin = '8px 0';
+                pub.voteBallots.forEach(b => {
+                    const chip = document.createElement('span');
+                    chip.className = 'sh-vote-chip ' + (b.vote ? 'ja' : 'nein');
+                    chip.textContent = b.name + ' · ' + (b.vote ? 'JA' : 'NEIN');
+                    tally.appendChild(chip);
+                });
+                actions.appendChild(tally);
             }
             // Phase-specific
             if (pub.phase === 'nomination') {
@@ -6252,45 +6388,27 @@
             } else if (pub.phase === 'legislativePres') {
                 status.innerHTML = 'President <strong>' + (presPlayer ? presPlayer.name : '?') + '</strong> is reviewing 3 policies.';
                 if (priv && priv.me && priv.me.id === pub.presidentId && priv.drawnPolicies) {
-                    const wrap = document.createElement('div');
-                    const note = document.createElement('div');
-                    note.className = 'sh-meta';
-                    note.textContent = 'Tap a card to DISCARD it. The other two go to the Chancellor.';
-                    wrap.appendChild(note);
-                    const row = document.createElement('div');
-                    row.style.display = 'flex';
-                    row.style.justifyContent = 'center';
-                    row.style.flexWrap = 'wrap';
-                    priv.drawnPolicies.forEach((card, i) => {
-                        const c = document.createElement('div');
-                        c.className = 'sh-policy-card ' + card;
-                        c.textContent = card === 'lib' ? 'LIBERAL' : 'FASCIST';
-                        c.onclick = () => shDoPresDiscard(i);
-                        row.appendChild(c);
+                    shRenderPolicyPick(actions, priv.drawnPolicies, {
+                        instruction: 'Choose one policy to DISCARD. The other two pass to the Chancellor.',
+                        selectLabel: 'tap to discard',
+                        confirmLabel: 'Confirm Discard',
+                        selectedKey: 'presSelectedDiscard',
+                        gameCode: shClient.gameCode,
+                        onConfirm: (idx) => shDoPresDiscard(idx)
                     });
-                    wrap.appendChild(row);
-                    actions.appendChild(wrap);
                 }
             } else if (pub.phase === 'legislativeChan') {
                 status.innerHTML = 'Chancellor <strong>' + (chanPlayer ? chanPlayer.name : '?') + '</strong> is choosing which policy to enact.';
                 if (priv && priv.me && priv.me.id === pub.chancellorId && priv.chancellorPolicies) {
                     const wrap = document.createElement('div');
-                    const note = document.createElement('div');
-                    note.className = 'sh-meta';
-                    note.textContent = 'Tap a card to ENACT it.';
-                    wrap.appendChild(note);
-                    const row = document.createElement('div');
-                    row.style.display = 'flex';
-                    row.style.justifyContent = 'center';
-                    row.style.flexWrap = 'wrap';
-                    priv.chancellorPolicies.forEach((card, i) => {
-                        const c = document.createElement('div');
-                        c.className = 'sh-policy-card ' + card;
-                        c.textContent = card === 'lib' ? 'LIBERAL' : 'FASCIST';
-                        c.onclick = () => shDoChanEnact(i);
-                        row.appendChild(c);
+                    shRenderPolicyPick(wrap, priv.chancellorPolicies, {
+                        instruction: 'Choose one policy to ENACT.',
+                        selectLabel: 'tap to enact',
+                        confirmLabel: 'Enact This Policy',
+                        selectedKey: 'chanSelectedEnact',
+                        gameCode: shClient.gameCode,
+                        onConfirm: (idx) => shDoChanEnact(idx)
                     });
-                    wrap.appendChild(row);
                     if (pub.fascistPolicies >= 5 && !pub.vetoProposed) {
                         const vbtn = document.createElement('button');
                         vbtn.className = 'sh-btn danger';
@@ -6413,6 +6531,78 @@
                     actions.appendChild(wrap);
                 }
             }
+        }
+
+        function shRenderPolicyCard(card, opts) {
+            opts = opts || {};
+            const c = document.createElement('div');
+            c.className = 'sh-policy-card dealt ' + card + (opts.selected ? ' selected' : '') + (opts.dimmed ? ' dimmed' : '');
+            const icon = document.createElement('i');
+            icon.className = 'sh-policy-icon fas ' + (card === 'lib' ? 'fa-scroll' : 'fa-gavel');
+            const label = document.createElement('span');
+            label.className = 'sh-policy-label';
+            label.textContent = card === 'lib' ? 'LIBERAL' : 'FASCIST';
+            const sub = document.createElement('span');
+            sub.className = 'sh-policy-sub';
+            sub.textContent = card === 'lib' ? 'Liberal' : 'Faſchiſten';
+            c.appendChild(icon);
+            c.appendChild(label);
+            c.appendChild(sub);
+            if (opts.onClick) c.onclick = opts.onClick;
+            return c;
+        }
+
+        function shRenderPolicyPick(container, cards, opts) {
+            // opts: {instruction, selectLabel, confirmLabel, selectedKey, gameCode, onConfirm}
+            // Selection persists across polls via shClient[selectedKey+':'+gameCode]
+            const stateKey = opts.selectedKey + ':' + opts.gameCode;
+            if (typeof shClient[stateKey] === 'undefined') shClient[stateKey] = null;
+            const draw = () => {
+                container.innerHTML = '';
+                const note = document.createElement('div');
+                note.className = 'sh-meta';
+                note.textContent = opts.instruction;
+                container.appendChild(note);
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.justifyContent = 'center';
+                row.style.flexWrap = 'wrap';
+                const selectedIdx = shClient[stateKey];
+                cards.forEach((card, i) => {
+                    const isSelected = selectedIdx === i;
+                    const anySelected = selectedIdx !== null;
+                    const c = shRenderPolicyCard(card, {
+                        selected: isSelected,
+                        dimmed: anySelected && !isSelected,
+                        onClick: () => {
+                            shClient[stateKey] = (shClient[stateKey] === i) ? null : i;
+                            draw();
+                        }
+                    });
+                    row.appendChild(c);
+                });
+                container.appendChild(row);
+                const hintText = document.createElement('div');
+                hintText.className = 'sh-meta';
+                hintText.style.marginTop = '8px';
+                hintText.style.color = (selectedIdx !== null) ? 'var(--gold)' : 'var(--brown-light)';
+                hintText.textContent = (selectedIdx !== null) ? 'Selected. Confirm to commit.' : opts.selectLabel;
+                container.appendChild(hintText);
+                const btn = document.createElement('button');
+                btn.className = 'sh-btn';
+                btn.textContent = opts.confirmLabel;
+                btn.disabled = selectedIdx === null;
+                btn.onclick = async () => {
+                    const idx = shClient[stateKey];
+                    if (idx === null) return;
+                    btn.disabled = true;
+                    const ok = await opts.onConfirm(idx);
+                    if (ok) shClient[stateKey] = null;
+                    else btn.disabled = false;
+                };
+                container.appendChild(btn);
+            };
+            draw();
         }
 
         function shRenderBoardHtml(pub) {
