@@ -551,10 +551,20 @@ export async function shUsePower(store: Store, p: any) {
   if (!target) return { success: false, error: "Target not found" };
   if (!target.alive) return { success: false, error: "Target is dead" };
   if (target.id === pres.id) return { success: false, error: "Cannot target self" };
+  s.powerLog = s.powerLog || [];
+  const now = new Date().toISOString();
   if (s.pendingPower === "investigate") {
     if (target.hasBeenInvestigated) return { success: false, error: "Already investigated" };
     target.hasBeenInvestigated = true;
     s.investigateResult = { targetId: target.id, name: target.name, party: target.party };
+    // Public log: names only — result stays private to the President.
+    s.powerLog.push({
+      at: now,
+      power: "executive_investigate",
+      by: pres.id, byName: pres.name,
+      targetId: target.id, targetName: target.name,
+      publicResult: pres.name + " investigated " + target.name + " (result is secret).",
+    });
     await saveGame(store, game.code, s);
     return { success: true };
   }
@@ -568,12 +578,26 @@ export async function shUsePower(store: Store, p: any) {
     s.pendingPower = null;
     s.nominatedChancellorId = null;
     s.phase = "nomination";
+    s.powerLog.push({
+      at: now,
+      power: "executive_special_election",
+      by: pres.id, byName: pres.name,
+      targetId: target.id, targetName: target.name,
+      publicResult: pres.name + " called a Special Election — " + target.name + " becomes the next President.",
+    });
     await saveGame(store, game.code, s);
     return { success: true };
   }
   if (s.pendingPower === "execute") {
     target.alive = false;
     s.pendingPower = null;
+    s.powerLog.push({
+      at: now,
+      power: "executive_execute",
+      by: pres.id, byName: pres.name,
+      targetId: target.id, targetName: target.name,
+      publicResult: pres.name + " executed " + target.name + ".",
+    });
     if (!checkWin(s)) {
       advancePresident(s);
       s.nominatedChancellorId = null;
@@ -593,6 +617,17 @@ export async function shAckPower(store: Store, p: any) {
   const pres = currentPresident(s);
   if (!pres || pres.id !== p.playerId) return { success: false, error: "Only president can ack" };
   if (s.pendingPower !== "peek" && s.pendingPower !== "investigate") return { success: false, error: "Nothing to ack" };
+  // Log peek publicly (no results leaked — only that it happened).
+  // Investigate is already logged at use-time in shUsePower.
+  if (s.pendingPower === "peek") {
+    s.powerLog = s.powerLog || [];
+    s.powerLog.push({
+      at: new Date().toISOString(),
+      power: "executive_peek",
+      by: pres.id, byName: pres.name,
+      publicResult: pres.name + " peeked at the top 3 policies (contents secret).",
+    });
+  }
   s.pendingPower = null;
   s.peekResult = null;
   s.investigateResult = null;

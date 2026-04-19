@@ -644,6 +644,89 @@ Deno.test("hitler elected chancellor after 3 fascist policies → instant fascis
 // Reset
 // ============================================================
 // ============================================================
+// Executive power log (public, result-hiding)
+// ============================================================
+Deno.test("executive log: investigate writes public entry without revealing party", async () => {
+  const names = Array.from({ length: 9 }, (_, i) => "P" + i);
+  const { store, code, hostId, ids } = await setupLobby(names);
+  await startGame(store, code, hostId);
+  const g = await store.load(code);
+  g!.state.phase = "power";
+  g!.state.pendingPower = "investigate";
+  await store.update(code, { state: g!.state });
+  const s = await getState(store, code, hostId);
+  const presId = s.pub.presidentId;
+  const target = ids.find((i) => i !== presId)!;
+  await shUsePower(store, { gameCode: code, playerId: presId, targetId: target });
+  const after = await store.load(code);
+  const entry = after!.state.powerLog.find((e: any) => e.power === "executive_investigate");
+  assert(entry);
+  assertEquals(entry.targetId, target);
+  // Public result names both players but NOT the party
+  assert(entry.publicResult.includes("investigated"));
+  assertFalse(entry.publicResult.toLowerCase().includes("liberal"));
+  assertFalse(entry.publicResult.toLowerCase().includes("fascist"));
+});
+
+Deno.test("executive log: execute writes public kill entry", async () => {
+  const names = Array.from({ length: 7 }, (_, i) => "P" + i);
+  const { store, code, hostId, ids } = await setupLobby(names);
+  await startGame(store, code, hostId);
+  const g = await store.load(code);
+  g!.state.phase = "power";
+  g!.state.pendingPower = "execute";
+  await store.update(code, { state: g!.state });
+  const full = await store.load(code);
+  const presId = full!.state.players[full!.state.presidentIdx].id;
+  const target = full!.state.players.find((p: any) =>
+    p.id !== presId && p.role !== "hitler" && p.alive
+  );
+  await shUsePower(store, { gameCode: code, playerId: presId, targetId: target.id });
+  const after = await store.load(code);
+  const entry = after!.state.powerLog.find((e: any) => e.power === "executive_execute");
+  assert(entry);
+  assertEquals(entry.targetId, target.id);
+  assert(entry.publicResult.includes("executed"));
+});
+
+Deno.test("executive log: special election names the chosen target", async () => {
+  const names = Array.from({ length: 7 }, (_, i) => "P" + i);
+  const { store, code, hostId, ids } = await setupLobby(names);
+  await startGame(store, code, hostId);
+  const g = await store.load(code);
+  g!.state.phase = "power";
+  g!.state.pendingPower = "specialElection";
+  await store.update(code, { state: g!.state });
+  const s = await getState(store, code, hostId);
+  const presId = s.pub.presidentId;
+  const target = ids.find((i) => i !== presId)!;
+  await shUsePower(store, { gameCode: code, playerId: presId, targetId: target });
+  const after = await store.load(code);
+  const entry = after!.state.powerLog.find((e: any) => e.power === "executive_special_election");
+  assert(entry);
+  assertEquals(entry.targetId, target);
+  assert(entry.publicResult.includes("Special Election"));
+});
+
+Deno.test("executive log: peek is logged on ack (contents secret)", async () => {
+  const { store, code, hostId, ids } = await setupLobby(["H", "B", "C", "D", "E"]);
+  await startGame(store, code, hostId);
+  const g = await store.load(code);
+  g!.state.phase = "power";
+  g!.state.pendingPower = "peek";
+  g!.state.peekResult = ["lib", "fas", "lib"];
+  await store.update(code, { state: g!.state });
+  const presId = (await getState(store, code, hostId)).pub.presidentId;
+  await shAckPower(store, { gameCode: code, playerId: presId });
+  const after = await store.load(code);
+  const entry = after!.state.powerLog.find((e: any) => e.power === "executive_peek");
+  assert(entry);
+  assert(entry.publicResult.includes("peeked"));
+  assertFalse(entry.publicResult.toLowerCase().includes("lib"));
+  assertFalse(entry.publicResult.toLowerCase().includes("fas"));
+});
+
+// ============================================================
 // Kick
 // ============================================================
 Deno.test("kick: host removes a player from the lobby", async () => {
