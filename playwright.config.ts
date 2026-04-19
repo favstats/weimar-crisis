@@ -15,10 +15,12 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:8765",
     viewport: { width: 420, height: 900 }, // phone-ish; SH is mobile-first
     deviceScaleFactor: 2,
-    // Deterministic visuals
+    // Deterministic visuals — reduced motion skips spotlight shader, slam
+    // animations, and letter-stress so baselines don't depend on frame timing.
     colorScheme: "light",
     locale: "en-US",
     timezoneId: "Europe/Berlin",
+    reducedMotion: "reduce",
   },
   expect: {
     toHaveScreenshot: {

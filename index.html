@@ -344,6 +344,130 @@
             flex-shrink: 0;
         }
 
+        /* =========================================================
+           OVERDRIVE — PROPAGANDA POSTER
+           ========================================================= */
+
+        /* Spotlight WebGL layer lives above paper bg, below UI */
+        .sh-spotlight-layer {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.55;
+            mix-blend-mode: overlay;
+        }
+        .sh-container { position: relative; z-index: 1; }
+
+        /* Art Deco diagonal stripe bands — above/below the board title */
+        .sh-deco-band {
+            height: 10px;
+            margin: 2px 0 6px;
+            background:
+                repeating-linear-gradient(
+                    135deg,
+                    var(--brown) 0 5px,
+                    transparent 5px 10px
+                );
+            opacity: 0.32;
+        }
+        .sh-deco-band.thin { height: 6px; margin-top: 6px; }
+
+        /* Scroll-driven parallax on board title (progressive enhancement) */
+        @supports (animation-timeline: scroll()) {
+            .sh-board-title {
+                animation: shTitleFloat linear both;
+                animation-timeline: scroll(nearest);
+                animation-range: exit 0% exit 100%;
+                will-change: transform, letter-spacing;
+            }
+            @keyframes shTitleFloat {
+                0% { transform: scale(1); letter-spacing: 0.28em; }
+                100% { transform: scale(1.04) translateZ(0); letter-spacing: 0.38em; }
+            }
+        }
+
+        /* Letter-stress animation: tracking tightens rhythmically. Used on
+           the Fascist track label when danger-zone is active. */
+        @keyframes shLetterStress {
+            0%, 100% { letter-spacing: 0.14em; }
+            50%      { letter-spacing: 0.30em; }
+        }
+        .sh-track.fas .sh-track-label.sh-stressed {
+            animation: shLetterStress 2.2s ease-in-out infinite;
+        }
+
+        /* Poster-slam ghost: an absolutely-positioned clone that flies from
+           the click site to the board slot, with motion blur + scale.
+           Actual keyframes are authored in JS via WAAPI so we can use
+           computed start/end positions. */
+        .sh-slam-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            will-change: transform, filter, opacity;
+        }
+
+        /* Full-screen colored flash band for enactment */
+        .sh-slam-flash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9998;
+            transform-origin: center;
+            will-change: opacity, transform;
+        }
+        .sh-slam-flash.lib {
+            background: radial-gradient(ellipse at center,
+                rgba(74,111,165,0.5) 0%,
+                rgba(74,111,165,0.15) 35%,
+                transparent 65%);
+        }
+        .sh-slam-flash.fas {
+            background: radial-gradient(ellipse at center,
+                rgba(194,59,34,0.55) 0%,
+                rgba(194,59,34,0.18) 35%,
+                transparent 65%);
+        }
+
+        /* Art Deco rays behind the board title (subtle, static on reduced-motion) */
+        .sh-rays {
+            position: relative;
+            padding-top: 4px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .sh-rays::before,
+        .sh-rays::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background:
+                repeating-linear-gradient(90deg,
+                    transparent 0 12px,
+                    var(--gold) 12px 13px),
+                repeating-linear-gradient(90deg,
+                    transparent 0 24px,
+                    rgba(201,162,39,0.35) 24px 25px);
+            opacity: 0.45;
+            mask-image: linear-gradient(to var(--ray-dir, right), black, transparent);
+            -webkit-mask-image: linear-gradient(to var(--ray-dir, right), black, transparent);
+        }
+        .sh-rays::before { left: 0; --ray-dir: right; transform: skewX(-18deg); }
+        .sh-rays::after { right: 0; --ray-dir: left; transform: skewX(18deg); }
+
+        /* Accessibility + snapshot stability */
+        @media (prefers-reduced-motion: reduce) {
+            .sh-spotlight-layer { display: none; }
+            .sh-slam-ghost,
+            .sh-slam-flash { display: none !important; }
+            .sh-track.fas .sh-track-label.sh-stressed { animation: none; }
+        }
+
         .sh-board {
             position: relative;
             margin: 16px 0;
@@ -7190,7 +7314,9 @@
             const n = (pub.players || []).length;
             const fasPowers = shFascistPowerLabels(n);
             let html = '';
+            html += '<div class="sh-rays"></div>';
             html += '<div class="sh-board-title">Gesetzgebung \u00b7 Policy Board</div>';
+            html += '<div class="sh-deco-band"></div>';
             // Liberal track
             html += '<div class="sh-track lib"><div class="sh-track-label">Liberal</div><div class="sh-track-cells">';
             for (let i = 0; i < 5; i++) {
@@ -7200,8 +7326,10 @@
                     '</div>';
             }
             html += '</div></div>';
-            // Fascist track with power labels
-            html += '<div class="sh-track fas"><div class="sh-track-label">Fascist</div><div class="sh-track-cells">';
+            html += '<div class="sh-deco-band thin"></div>';
+            // Fascist track with power labels — label gets "stressed" when danger-zone
+            const stressed = pub.fascistPolicies >= 3 && pub.phase !== 'gameOver' ? ' sh-stressed' : '';
+            html += '<div class="sh-track fas"><div class="sh-track-label' + stressed + '">Fascist</div><div class="sh-track-cells">';
             for (let i = 0; i < 6; i++) {
                 const enacted = i < pub.fascistPolicies;
                 const pw = fasPowers[i];
@@ -7274,6 +7402,168 @@
         function shDoUsePower(targetId) { return shCallAction('shUsePower', { targetId: targetId }); }
         function shDoAckPower() { return shCallAction('shAckPower', {}); }
         function shDoKick(targetId) { return shCallAction('shKickPlayer', { targetId: targetId }); }
+
+        // ==================== OVERDRIVE: PROPAGANDA POSTER ====================
+        const shReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // --- WebGL spotlight layer ---
+        (function shSpotlight() {
+            let canvas, gl, prog, u_time, u_res, rafId, start = performance.now();
+            let alive = false;
+
+            function init() {
+                if (shReducedMotion()) return;
+                if (canvas) return;
+                canvas = document.createElement('canvas');
+                canvas.className = 'sh-spotlight-layer';
+                canvas.setAttribute('aria-hidden', 'true');
+                document.body.prepend(canvas);
+                gl = canvas.getContext('webgl', { alpha: true, antialias: false, premultipliedAlpha: true, powerPreference: 'low-power' });
+                if (!gl) { canvas.remove(); canvas = null; return; }
+                resize();
+                window.addEventListener('resize', resize, { passive: true });
+
+                const vs = gl.createShader(gl.VERTEX_SHADER);
+                gl.shaderSource(vs, 'attribute vec2 p; varying vec2 u; void main(){ u = p*0.5+0.5; gl_Position=vec4(p,0.,1.); }');
+                gl.compileShader(vs);
+                const fs = gl.createShader(gl.FRAGMENT_SHADER);
+                gl.shaderSource(fs, [
+                    'precision mediump float;',
+                    'varying vec2 u; uniform float t; uniform vec2 r;',
+                    'void main(){',
+                    '  float aspect = r.x/r.y;',
+                    '  // two drifting spotlights (Lissajous), one gold one red',
+                    '  vec2 c1 = vec2(0.5 + 0.40*sin(t*0.12), 0.45 + 0.28*cos(t*0.09));',
+                    '  vec2 c2 = vec2(0.5 + 0.35*cos(t*0.08 + 1.7), 0.55 + 0.25*sin(t*0.11));',
+                    '  vec2 d1 = (u - c1); d1.x *= aspect;',
+                    '  vec2 d2 = (u - c2); d2.x *= aspect;',
+                    '  float s1 = smoothstep(0.70, 0.05, length(d1));',
+                    '  float s2 = smoothstep(0.60, 0.05, length(d2));',
+                    '  vec3 gold = vec3(0.87, 0.67, 0.14) * s1 * 0.55;',
+                    '  vec3 ember = vec3(0.76, 0.23, 0.13) * s2 * 0.35;',
+                    '  float a = max(s1, s2) * 0.75;',
+                    '  gl_FragColor = vec4(gold + ember, a);',
+                    '}'
+                ].join('\n'));
+                gl.compileShader(fs);
+                prog = gl.createProgram();
+                gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+                if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { canvas.remove(); return; }
+                gl.useProgram(prog);
+                const buf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+                const loc = gl.getAttribLocation(prog, 'p');
+                gl.enableVertexAttribArray(loc);
+                gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+                u_time = gl.getUniformLocation(prog, 't');
+                u_res = gl.getUniformLocation(prog, 'r');
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+                alive = true;
+                loop();
+            }
+            function resize() {
+                if (!canvas || !gl) return;
+                const dpr = Math.min(window.devicePixelRatio || 1, 1.5); // cap for mobile battery
+                canvas.width = Math.floor(window.innerWidth * dpr);
+                canvas.height = Math.floor(window.innerHeight * dpr);
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            function loop() {
+                if (!alive) return;
+                if (document.hidden) {
+                    rafId = requestAnimationFrame(loop);
+                    return;
+                }
+                const activeScreen = document.querySelector('.screen.active');
+                const show = activeScreen && activeScreen.id && activeScreen.id.startsWith('sh-') && activeScreen.id !== 'sh-name-screen';
+                canvas.style.opacity = show ? '0.55' : '0';
+                if (show) {
+                    const t = (performance.now() - start) / 1000;
+                    gl.clearColor(0, 0, 0, 0);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                    gl.uniform1f(u_time, t);
+                    gl.uniform2f(u_res, canvas.width, canvas.height);
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                }
+                rafId = requestAnimationFrame(loop);
+            }
+
+            if (document.readyState !== 'loading') init();
+            else document.addEventListener('DOMContentLoaded', init);
+        })();
+
+        // --- Poster-slam animation on policy enactment ---
+        function shPosterSlam(fromRect, party, enactedPolicyClass) {
+            if (shReducedMotion()) return;
+            // Colored flash band
+            const flash = document.createElement('div');
+            flash.className = 'sh-slam-flash ' + party;
+            document.body.appendChild(flash);
+            flash.animate([
+                { opacity: 0, transform: 'scaleY(0.2)' },
+                { opacity: 1, transform: 'scaleY(1)', offset: 0.25 },
+                { opacity: 0, transform: 'scaleY(1)' }
+            ], { duration: 520, easing: 'cubic-bezier(.2,.9,.3,1)', fill: 'forwards' });
+            setTimeout(() => flash.remove(), 560);
+
+            // Ghost card flying to the next available slot
+            const trackSel = party === 'lib' ? '.sh-track.lib .sh-track-cells' : '.sh-track.fas .sh-track-cells';
+            const slots = document.querySelectorAll(trackSel + ' .sh-track-cell');
+            let target = null;
+            for (const s of slots) { if (s.classList.contains('filled')) target = s; }
+            if (!target || !fromRect) return;
+            const toRect = target.getBoundingClientRect();
+
+            const ghost = document.createElement('div');
+            ghost.className = 'sh-slam-ghost sh-policy-card ' + party;
+            ghost.style.left = fromRect.left + 'px';
+            ghost.style.top = fromRect.top + 'px';
+            ghost.style.width = fromRect.width + 'px';
+            ghost.style.height = fromRect.height + 'px';
+            ghost.innerHTML =
+                '<i class="sh-policy-icon fas ' + (party === 'lib' ? 'fa-scroll' : 'fa-gavel') + '"></i>' +
+                '<span class="sh-policy-label">' + (party === 'lib' ? 'LIBERAL' : 'FASCIST') + '</span>';
+            document.body.appendChild(ghost);
+
+            const dx = (toRect.left + toRect.width / 2) - (fromRect.left + fromRect.width / 2);
+            const dy = (toRect.top + toRect.height / 2) - (fromRect.top + fromRect.height / 2);
+            const scaleDown = Math.max(0.35, toRect.width / fromRect.width);
+            const rot = party === 'fas' ? -6 : 6;
+
+            ghost.animate([
+                { transform: 'translate(0,0) scale(1) rotate(0)', filter: 'blur(0) drop-shadow(0 4px 0 rgba(0,0,0,0.3))', opacity: 1 },
+                { transform: 'translate(' + (dx * 0.55) + 'px,' + (dy * 0.55) + 'px) scale(1.08) rotate(' + rot + 'deg)', filter: 'blur(4px) drop-shadow(0 8px 0 rgba(0,0,0,0.25))', opacity: 0.95, offset: 0.45 },
+                { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + (scaleDown * 1.25) + ') rotate(0)', filter: 'blur(0) drop-shadow(0 2px 0 rgba(0,0,0,0.2))', opacity: 1, offset: 0.78 },
+                { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + scaleDown + ') rotate(0)', filter: 'blur(0)', opacity: 0, offset: 1 }
+            ], { duration: 880, easing: 'cubic-bezier(.45,1.55,.4,1)', fill: 'forwards' });
+            setTimeout(() => ghost.remove(), 920);
+
+            // Destination glow
+            target.animate([
+                { boxShadow: '0 0 0 rgba(201,162,39,0)' },
+                { boxShadow: '0 0 0 rgba(201,162,39,0)', offset: 0.55 },
+                { boxShadow: '0 0 42px rgba(201,162,39,0.75)', offset: 0.78 },
+                { boxShadow: '0 0 0 rgba(201,162,39,0)' }
+            ], { duration: 1100, easing: 'ease-out' });
+        }
+
+        // Intercept chancellor enact to capture the source card rect before re-render.
+        const _origShDoChanEnact = typeof shDoChanEnact === 'function' ? shDoChanEnact : null;
+        shDoChanEnact = async function(i) {
+            const cards = document.querySelectorAll('#sh-play-actions .sh-policy-card');
+            const card = cards[i];
+            let rect = null, party = null;
+            if (card) {
+                rect = card.getBoundingClientRect();
+                party = card.classList.contains('lib') ? 'lib' : 'fas';
+            }
+            const ok = await (_origShDoChanEnact ? _origShDoChanEnact(i) : shCallAction('shChancellorEnact', { enactIndex: i }));
+            if (ok && rect && party) shPosterSlam(rect, party, party);
+            return ok;
+        };
         function shDoUseExpansionPower(targetId) { return shCallAction('shUseExpansionPower', { targetId: targetId }); }
 
         function shRenderUsePowerUI(container, pub, priv) {
